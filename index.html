@@ -44,7 +44,11 @@ en: {
     dropHere:"Click or drop receipt here",fileTypes:"JPG, PNG, HEIC or PDF",verifyBtn:"Verify receipt with AI",
     analyzing:"Analysing receipt...",verifiedTitle:"Receipt verified",failedTitle:"Verification failed",
     ref:"Ref",amountDetected:"Amount detected",uploadDifferent:"Upload a different receipt",
-    back:"Back",reviewBtn:"Review booking"},
+    back:"Back",reviewBtn:"Review booking",
+    noKeyNotice:"Automatic AI verification isn't set up yet. Your receipt will be checked manually by the clinic before your visit.",
+    manualConfirmBtn:"I've sent the payment",
+    manualPendingTitle:"Receipt uploaded — pending manual review",
+    manualPendingReason:"The clinic will verify your payment manually before your appointment."},
   review:{title:"Confirm your booking",sub:"Please review all details before submitting.",
     examination:"Examination",fee:"Fee",date:"Date",time:"Time",patientName:"Patient name",phone:"Phone number",
     email:"Email",ageGender:"Age / gender",payment:"Payment",paymentVerified:"Instapay — verified ✓",
@@ -113,7 +117,11 @@ ar: {
     dropHere:"اضغط هنا أو اسحب الإيصال",fileTypes:"JPG أو PNG أو HEIC أو PDF",verifyBtn:"تحقق من الإيصال بالذكاء الاصطناعي",
     analyzing:"جاري تحليل الإيصال...",verifiedTitle:"تم التحقق من الإيصال",failedTitle:"فشل التحقق",
     ref:"رقم العملية",amountDetected:"المبلغ المكتشف",uploadDifferent:"ارفع إيصالاً آخر",
-    back:"رجوع",reviewBtn:"مراجعة الحجز"},
+    back:"رجوع",reviewBtn:"مراجعة الحجز",
+    noKeyNotice:"التحقق التلقائي بالذكاء الاصطناعي غير مفعّل حالياً. سيتم مراجعة إيصالك يدوياً من قبل العيادة قبل موعدك.",
+    manualConfirmBtn:"لقد قمت بإرسال المبلغ",
+    manualPendingTitle:"تم رفع الإيصال — بانتظار المراجعة اليدوية",
+    manualPendingReason:"ستقوم العيادة بالتحقق من دفعتك يدوياً قبل موعدك."},
   review:{title:"تأكيد الحجز",sub:"يرجى مراجعة جميع البيانات قبل الإرسال.",
     examination:"نوع الكشف",fee:"الرسوم",date:"التاريخ",time:"الوقت",patientName:"اسم المريض",phone:"رقم الهاتف",
     email:"البريد الإلكتروني",ageGender:"السن / النوع",payment:"الدفع",paymentVerified:"إنستاباي — تم التحقق ✓",
@@ -409,8 +417,9 @@ function InfoStep({info,setInfo,onBack,onNext,t,lang}){
 }
 
 // ── Step 4: Payment ──────────────────────────────────────────
-function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onBack,onNext,t,lang}){
+function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManualConfirm,onBack,onNext,t,lang}){
   const ref=useRef();
+  const hasKey = !!ls.get("clinic_api_key");
   return(
     <div style={bs.card}>
       <h1 style={bs.h1}>{t.payment.title}</h1>
@@ -421,6 +430,12 @@ function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onBack,o
         <div style={{fontSize:12,color:AM,marginTop:1}}>{exam?.name}</div>
         <div style={{fontSize:12,color:MT,marginTop:6}}>{t.payment.transferNote}</div>
       </div>
+      {!hasKey&&(
+        <div style={{background:"#EEF3F7",border:`1px solid ${BD}`,borderRadius:9,padding:"10px 13px",marginBottom:14,fontSize:12,color:MT,display:"flex",gap:8,alignItems:"flex-start"}}>
+          <i className="ti ti-info-circle" style={{flexShrink:0,marginTop:1,color:T}}/>
+          <span>{t.payment.noKeyNotice}</span>
+        </div>
+      )}
       <div onClick={()=>ref.current.click()} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();onFile(e.dataTransfer.files[0]);}}
         style={{border:`2px dashed ${receipt?T:BD}`,borderRadius:11,padding:recPrev?6:26,textAlign:"center",cursor:"pointer",background:"#FAFBFC"}}>
         {recPrev&&receipt?.type?.startsWith("image/")
@@ -432,20 +447,21 @@ function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onBack,o
         }
         <input ref={ref} type="file" accept="image/*,application/pdf" style={{display:"none"}} onChange={e=>onFile(e.target.files[0])}/>
       </div>
-      {receipt&&!vfying&&!verif&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onVerify}><i className="ti ti-scan" style={{marginInlineEnd:6}}/>{t.payment.verifyBtn}</button>}
+      {receipt&&!vfying&&!verif&&hasKey&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onVerify}><i className="ti ti-scan" style={{marginInlineEnd:6}}/>{t.payment.verifyBtn}</button>}
+      {receipt&&!verif&&!hasKey&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onManualConfirm}><i className="ti ti-check" style={{marginInlineEnd:6}}/>{t.payment.manualConfirmBtn}</button>}
       {vfying&&<div style={{textAlign:"center",padding:"12px 0",color:MT,fontSize:13}}><i className="ti ti-loader" style={{marginInlineEnd:5}}/>{t.payment.analyzing}</div>}
       {verif&&(
-        <div style={{marginTop:12,padding:"13px 14px",borderRadius:10,background:verif.verified?GL:RL,border:`1px solid ${verif.verified?"#A9DFC0":"#F5B7B1"}`,display:"flex",gap:10,alignItems:"flex-start"}}>
-          <i className={`ti ti-${verif.verified?"circle-check":"circle-x"}`} style={{fontSize:20,color:verif.verified?GR:RD,flexShrink:0,marginTop:1}}/>
+        <div style={{marginTop:12,padding:"13px 14px",borderRadius:10,background:verif.manual?AL:verif.verified?GL:RL,border:`1px solid ${verif.manual?"#E4C988":verif.verified?"#A9DFC0":"#F5B7B1"}`,display:"flex",gap:10,alignItems:"flex-start"}}>
+          <i className={`ti ti-${verif.manual?"clock":verif.verified?"circle-check":"circle-x"}`} style={{fontSize:20,color:verif.manual?AM:verif.verified?GR:RD,flexShrink:0,marginTop:1}}/>
           <div>
-            <div style={{fontWeight:600,color:verif.verified?GR:RD,fontSize:13}}>{verif.verified?t.payment.verifiedTitle:t.payment.failedTitle}</div>
+            <div style={{fontWeight:600,color:verif.manual?AM:verif.verified?GR:RD,fontSize:13}}>{verif.manual?t.payment.manualPendingTitle:verif.verified?t.payment.verifiedTitle:t.payment.failedTitle}</div>
             <div style={{fontSize:12,color:TX,marginTop:2}}>{verif.reason}</div>
             {verif.transactionRef&&<div style={{fontSize:11,color:MT,marginTop:2}}>{t.payment.ref}: {verif.transactionRef}</div>}
             {verif.amount&&<div style={{fontSize:11,color:MT}}>{t.payment.amountDetected}: {verif.amount} EGP</div>}
           </div>
         </div>
       )}
-      {verif&&!verif.verified&&<button style={{...bs.ghost,width:"100%",marginTop:8}} onClick={()=>onFile(null)}><i className="ti ti-refresh" style={{marginInlineEnd:5}}/>{t.payment.uploadDifferent}</button>}
+      {verif&&!verif.verified&&!verif.manual&&<button style={{...bs.ghost,width:"100%",marginTop:8}} onClick={()=>onFile(null)}><i className="ti ti-refresh" style={{marginInlineEnd:5}}/>{t.payment.uploadDifferent}</button>}
       <div style={bs.row}>
         <button style={bs.ghost} onClick={onBack}><BackIcon lang={lang}/>{t.payment.back}</button>
         <button style={{...bs.btn,opacity:verif?.verified?1:0.4}} onClick={onNext} disabled={!verif?.verified}>{t.payment.reviewBtn} <FwdIcon lang={lang}/></button>
@@ -462,7 +478,7 @@ function ReviewStep({exam,selDate,selTime,info,verif,submitting,onBack,onSubmit,
     [t.review.patientName,info.name],[t.review.phone,info.phone],
     info.email&&[t.review.email,info.email],
     [t.review.ageGender,`${info.age} ${lang==="ar"?"سنة":"yrs"} / ${info.gender}`],
-    [t.review.payment,t.review.paymentVerified],
+    [t.review.payment,verif?.manual?t.payment.manualPendingTitle:t.review.paymentVerified],
     verif?.transactionRef&&[t.review.transactionRef,verif.transactionRef],
   ].filter(Boolean);
   return(
@@ -812,6 +828,10 @@ function App(){
     setVerif(res); setVF(false);
   }
 
+  function onManualConfirm(){
+    setVerif({verified:true, manual:true, reason:t.payment.manualPendingReason});
+  }
+
   async function onSubmit(){
     if(!verif?.verified||submitting) return;
     setSub(true);
@@ -877,7 +897,7 @@ function App(){
         {step===1&&<ExamStep exam={examType} setExam={setExamType} onNext={()=>setStep(2)} t={t} lang={lang}/>}
         {step===2&&<DateStep selDate={selDate} setSelDate={d=>{setSelDate(d);setSelTime(null);}} selTime={selTime} setSelTime={setSelTime} onBack={()=>setStep(1)} onNext={()=>setStep(3)} t={t} lang={lang}/>}
         {step===3&&<InfoStep info={info} setInfo={setInfo} onBack={()=>setStep(2)} onNext={()=>setStep(4)} t={t} lang={lang}/>}
-        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
+        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onManualConfirm={onManualConfirm} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
         {step===5&&<ReviewStep exam={exam} selDate={selDate} selTime={selTime} info={info} verif={verif} submitting={submitting} onBack={()=>setStep(4)} onSubmit={onSubmit} t={t} lang={lang}/>}
       </main>
     </div>
