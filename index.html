@@ -48,7 +48,8 @@ en: {
     noKeyNotice:"Automatic AI verification isn't set up yet. Your receipt will be checked manually by the clinic before your visit.",
     manualConfirmBtn:"I've sent the payment",
     manualPendingTitle:"Receipt uploaded — pending manual review",
-    manualPendingReason:"The clinic will verify your payment manually before your appointment."},
+    manualPendingReason:"The clinic will verify your payment manually before your appointment.",
+    payNow:"Pay with Instapay",scanQr:"Or scan to pay",afterPaying:"After paying, come back and upload your receipt below."},
   review:{title:"Confirm your booking",sub:"Please review all details before submitting.",
     examination:"Examination",fee:"Fee",date:"Date",time:"Time",patientName:"Patient name",phone:"Phone number",
     email:"Email",ageGender:"Age / gender",payment:"Payment",paymentVerified:"Instapay — verified ✓",
@@ -69,6 +70,8 @@ en: {
     adminPin:"Admin PIN",adminPinPh:"4+ digit PIN",gasUrl:"Google Apps Script URL",
     gasUrlPh:"https://script.google.com/macros/s/.../exec",
     apiKey:"Anthropic API key (receipt verification)",apiKeyPh:"sk-ant-...",
+    instapayHandle:"Clinic Instapay handle (for recipient check)",instapayHandlePh:"e.g. yourclinic@instapay",
+    instapayLink:"Instapay payment link",instapayLinkPh:"https://ipn.eg/S/...",
     saveBtn:"Save settings",saving:"Saving...",savedOk:"Settings saved ✓",saveFail:"Save failed — check your Apps Script URL"},
   setup:{title:"One-time setup",sub:"This takes about 5 minutes. You'll never need to do it again.",
     step1:"Create backend",step2:"Connect app",
@@ -121,7 +124,8 @@ ar: {
     noKeyNotice:"التحقق التلقائي بالذكاء الاصطناعي غير مفعّل حالياً. سيتم مراجعة إيصالك يدوياً من قبل العيادة قبل موعدك.",
     manualConfirmBtn:"لقد قمت بإرسال المبلغ",
     manualPendingTitle:"تم رفع الإيصال — بانتظار المراجعة اليدوية",
-    manualPendingReason:"ستقوم العيادة بالتحقق من دفعتك يدوياً قبل موعدك."},
+    manualPendingReason:"ستقوم العيادة بالتحقق من دفعتك يدوياً قبل موعدك.",
+    payNow:"ادفع عبر إنستاباي",scanQr:"أو امسح للدفع",afterPaying:"بعد الدفع، عد وارفع إيصالك بالأسفل."},
   review:{title:"تأكيد الحجز",sub:"يرجى مراجعة جميع البيانات قبل الإرسال.",
     examination:"نوع الكشف",fee:"الرسوم",date:"التاريخ",time:"الوقت",patientName:"اسم المريض",phone:"رقم الهاتف",
     email:"البريد الإلكتروني",ageGender:"السن / النوع",payment:"الدفع",paymentVerified:"إنستاباي — تم التحقق ✓",
@@ -142,6 +146,8 @@ ar: {
     adminPin:"الرقم السري للإدارة",adminPinPh:"4 أرقام أو أكثر",gasUrl:"رابط Google Apps Script",
     gasUrlPh:"https://script.google.com/macros/s/.../exec",
     apiKey:"مفتاح Anthropic API (للتحقق من الإيصالات)",apiKeyPh:"sk-ant-...",
+    instapayHandle:"حساب إنستاباي الخاص بالعيادة (للتحقق من المستلم)",instapayHandlePh:"مثال: yourclinic@instapay",
+    instapayLink:"رابط الدفع عبر إنستاباي",instapayLinkPh:"https://ipn.eg/S/...",
     saveBtn:"حفظ الإعدادات",saving:"جاري الحفظ...",savedOk:"تم حفظ الإعدادات ✓",saveFail:"فشل الحفظ — تحقق من رابط Apps Script"},
   setup:{title:"إعداد لمرة واحدة",sub:"يستغرق هذا حوالي 5 دقائق. لن تحتاج إلى تكراره مرة أخرى.",
     step1:"إنشاء الخادم",step2:"ربط التطبيق",
@@ -213,6 +219,10 @@ async function gasPost(data) {
 async function verifyReceipt(examId, price, b64, mime, examName) {
   const key = ls.get("clinic_api_key");
   if (!key) return {verified:false, reason:"No Anthropic API key configured in Admin → Settings."};
+  const recipientHandle = ls.get("clinic_instapay_handle") || "";
+  const recipientInstruction = recipientHandle
+    ? `The receipt's "To" field must show the recipient as "${recipientHandle}" (or a clearly matching variant, accounting for partially masked names like "AHMED M****** R*** E***** A*****"). If the "To" field shows a different, unrelated recipient handle, this is NOT a valid payment to this clinic — set verified to false and explain the mismatch in "reason".`
+    : `No clinic recipient handle is configured, so recipient cannot be checked — note this in "reason" but do not fail verification solely for that reason.`;
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method:"POST",
@@ -221,7 +231,7 @@ async function verifyReceipt(examId, price, b64, mime, examName) {
         model:"claude-sonnet-4-6", max_tokens:500,
         messages:[{role:"user",content:[
           {type:"image",source:{type:"base64",media_type:mime||"image/jpeg",data:b64}},
-          {type:"text",text:`Verify this Instapay payment receipt for an Egyptian clinic.\nRequired: ${price} EGP for "${examName}".\nRespond ONLY with valid JSON (no markdown):\n{"isInstapay":boolean,"amount":number_or_null,"amountMatches":boolean,"transactionRef":"ref_or_null","transactionDate":"date_or_null","verified":boolean,"reason":"one sentence"}\n"verified"=true ONLY if clearly Instapay AND amount=${price} EGP.`}
+          {type:"text",text:`Verify this Instapay payment receipt for an Egyptian clinic.\nRequired amount: ${price} EGP for "${examName}".\n${recipientInstruction}\nRespond ONLY with valid JSON (no markdown):\n{"isInstapay":boolean,"amount":number_or_null,"amountMatches":boolean,"recipientMatches":boolean,"recipientFound":"handle_or_name_seen_or_null","transactionRef":"ref_or_null","transactionDate":"date_or_null","verified":boolean,"reason":"one sentence"}\n"verified"=true ONLY if clearly Instapay AND amount=${price} EGP AND recipient matches (when a recipient handle was provided to check against).`}
         ]}]
       })
     });
@@ -420,6 +430,7 @@ function InfoStep({info,setInfo,onBack,onNext,t,lang}){
 function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManualConfirm,onBack,onNext,t,lang}){
   const ref=useRef();
   const hasKey = !!ls.get("clinic_api_key");
+  const payLink = ls.get("clinic_instapay_link");
   return(
     <div style={bs.card}>
       <h1 style={bs.h1}>{t.payment.title}</h1>
@@ -430,6 +441,22 @@ function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManual
         <div style={{fontSize:12,color:AM,marginTop:1}}>{exam?.name}</div>
         <div style={{fontSize:12,color:MT,marginTop:6}}>{t.payment.transferNote}</div>
       </div>
+      {payLink&&(
+        <div style={{border:`1px solid ${BD}`,borderRadius:11,padding:"16px 18px",marginBottom:18,textAlign:"center",background:"#FAFBFC"}}>
+          <a href={payLink} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+            <button style={{...bs.btn,width:"100%"}}>
+              <i className="ti ti-wallet" style={{marginInlineEnd:6}}/>{t.payment.payNow} <i className="ti ti-external-link" style={{marginInlineStart:6,fontSize:13}}/>
+            </button>
+          </a>
+          <div style={{fontSize:11,color:MT,marginTop:12,marginBottom:8}}>{t.payment.scanQr}</div>
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(payLink)}`}
+            alt="Instapay QR code" width="140" height="140"
+            style={{borderRadius:8,border:`1px solid ${BD}`}}
+          />
+          <div style={{fontSize:11,color:MT,marginTop:10}}>{t.payment.afterPaying}</div>
+        </div>
+      )}
       {!hasKey&&(
         <div style={{background:"#EEF3F7",border:`1px solid ${BD}`,borderRadius:9,padding:"10px 13px",marginBottom:14,fontSize:12,color:MT,display:"flex",gap:8,alignItems:"flex-start"}}>
           <i className="ti ti-info-circle" style={{flexShrink:0,marginTop:1,color:T}}/>
@@ -556,6 +583,8 @@ function AdminView({onLogout,t,lang,clinicName}){
     doctorEmail:"",
     secretaryEmail:"",
     apiKey:ls.get("clinic_api_key")||"",
+    instapayHandle:ls.get("clinic_instapay_handle")||"",
+    instapayLink:ls.get("clinic_instapay_link")||"",
     gasUrl:ls.get("clinic_gas_url")||"",
     adminPin:ls.get("clinic_admin_pin")||"1234",
   });
@@ -578,6 +607,8 @@ function AdminView({onLogout,t,lang,clinicName}){
     setSaving(true); setMsg("");
     ls.set("clinic_name",sett.clinicName);
     ls.set("clinic_api_key",sett.apiKey);
+    ls.set("clinic_instapay_handle",sett.instapayHandle);
+    ls.set("clinic_instapay_link",sett.instapayLink);
     ls.set("clinic_gas_url",sett.gasUrl);
     ls.set("clinic_admin_pin",sett.adminPin);
     const r=await gasPost({action:"saveSettings",currentPin:adminPin,clinicName:sett.clinicName,doctorEmail:sett.doctorEmail,secretaryEmail:sett.secretaryEmail,adminPin:sett.adminPin});
@@ -655,6 +686,8 @@ function AdminView({onLogout,t,lang,clinicName}){
               {k:"adminPin",lbl:t.admin.adminPin,ty:"password",ph:t.admin.adminPinPh},
               {k:"gasUrl",lbl:t.admin.gasUrl,ty:"url",ph:t.admin.gasUrlPh},
               {k:"apiKey",lbl:t.admin.apiKey,ty:"password",ph:t.admin.apiKeyPh},
+              {k:"instapayHandle",lbl:t.admin.instapayHandle,ty:"text",ph:t.admin.instapayHandlePh},
+              {k:"instapayLink",lbl:t.admin.instapayLink,ty:"url",ph:t.admin.instapayLinkPh},
             ].map(({k,lbl,ty,ph})=>(
               <div key={k} style={{marginBottom:12}}>
                 <label style={bs.lbl}>{lbl}</label>
@@ -675,6 +708,8 @@ function SetupView({onDone,t,lang}){
   const [step,setStep]=useState(1);
   const [gasU,setGasU]=useState("");
   const [apiK,setApiK]=useState("");
+  const [instapayH,setInstapayH]=useState("");
+  const [instapayL,setInstapayL]=useState("");
   const [name,setName]=useState("");
   const [pin,setPin]=useState("1234");
   const [saving,setSaving]=useState(false);
@@ -685,6 +720,8 @@ function SetupView({onDone,t,lang}){
     setSaving(true); setErr("");
     ls.set("clinic_gas_url",gasU.trim());
     if(apiK.trim()) ls.set("clinic_api_key",apiK.trim());
+    if(instapayH.trim()) ls.set("clinic_instapay_handle",instapayH.trim());
+    if(instapayL.trim()) ls.set("clinic_instapay_link",instapayL.trim());
     if(name.trim()) ls.set("clinic_name",name.trim());
     ls.set("clinic_admin_pin",pin||"1234");
     const r=await gasPost({action:"saveSettings",currentPin:"",clinicName:name,adminPin:pin});
@@ -753,6 +790,14 @@ function SetupView({onDone,t,lang}){
               <label style={bs.lbl}>{t.setup.apiKeyLabel} <span style={{fontWeight:400,color:MT}}>{t.setup.apiKeySub}</span></label>
               <input style={bs.inp} type="password" placeholder={t.setup.apiKeyPh} value={apiK} onChange={e=>setApiK(e.target.value)}/>
               <div style={{fontSize:11,color:MT,marginTop:4}}>{t.setup.apiKeyNote}</div>
+            </div>
+            <div style={{marginBottom:16}}>
+              <label style={bs.lbl}>{t.admin.instapayHandle}</label>
+              <input style={bs.inp} placeholder={t.admin.instapayHandlePh} value={instapayH} onChange={e=>setInstapayH(e.target.value)}/>
+            </div>
+            <div style={{marginBottom:16}}>
+              <label style={bs.lbl}>{t.admin.instapayLink}</label>
+              <input style={bs.inp} placeholder={t.admin.instapayLinkPh} value={instapayL} onChange={e=>setInstapayL(e.target.value)}/>
             </div>
             <div style={{background:AL,borderRadius:7,padding:"10px 13px",marginBottom:14,fontSize:12,color:AM}}>
               <i className="ti ti-info-circle" style={{marginInlineEnd:5}}/>{t.setup.emailNote}
