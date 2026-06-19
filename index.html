@@ -8,11 +8,15 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:#F0F5FA;color:#1C2B3A}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#F0F5FA;color:#102A38}
+body.lang-ar{font-family:'Tajawal','Inter',system-ui,sans-serif}
 input,select,button{font-family:inherit}
-a{color:#1A5C75}
+a{color:#0F5C70}
 </style>
 </head>
 <body>
@@ -20,12 +24,151 @@ a{color:#1A5C75}
 <script type="text/babel">
 const {useState,useEffect,useRef} = React;
 
+const TR = {
+en: {
+  dir:"ltr", clinicTagline:"Online appointment booking", langBtn:"العربية",
+  steps:["Exam type","Date & time","Your info","Payment","Review"],
+  exam:{title:"Select examination type",sub:"Choose the appointment you need. Payment via Instapay is required before your visit.",
+    regularName:"Regular examination",regularDesc:"Visual acuity, refraction, and comprehensive eye assessment",
+    sensoName:"Sensorimotor examination",sensoDesc:"Specialised strabismus evaluation — ocular motility and binocular alignment",
+    currency:"LE",continue:"Continue"},
+  date:{title:"Choose a date",sub:"Clinic days: Saturday · Sunday · Wednesday",availTimes:"Available times",
+    cairoTime:"Cairo time (EET)",fullyBooked:"This day is fully booked — please choose another date.",
+    loading:"Loading slots...",back:"Back",continue:"Continue"},
+  info:{title:"Your information",sub:"Fill in your details. Your phone number is how the clinic will reach you.",
+    name:"Full name *",namePh:"e.g. Ahmed Mohamed",phone:"Phone number *",phonePh:"01xxxxxxxxx",
+    email:"Email",emailOpt:"(optional)",emailPh:"your@email.com",age:"Age *",agePh:"Your age",
+    gender:"Gender *",genderSelect:"Select...",male:"Male",female:"Female",back:"Back",continue:"Continue"},
+  payment:{title:"Payment via Instapay",sub:"Send the full amount via Instapay, then upload a screenshot of your receipt.",
+    amountDue:"Amount due",transferNote:"Transfer via Instapay, screenshot the confirmation, then upload it below.",
+    dropHere:"Click or drop receipt here",fileTypes:"JPG, PNG, HEIC or PDF",verifyBtn:"Verify receipt with AI",
+    analyzing:"Analysing receipt...",verifiedTitle:"Receipt verified",failedTitle:"Verification failed",
+    ref:"Ref",amountDetected:"Amount detected",uploadDifferent:"Upload a different receipt",
+    back:"Back",reviewBtn:"Review booking"},
+  review:{title:"Confirm your booking",sub:"Please review all details before submitting.",
+    examination:"Examination",fee:"Fee",date:"Date",time:"Time",patientName:"Patient name",phone:"Phone number",
+    email:"Email",ageGender:"Age / gender",payment:"Payment",paymentVerified:"Instapay — verified ✓",
+    transactionRef:"Transaction ref",confirmNote:"Your payment has been verified. Submitting confirms your appointment.",
+    back:"Back",confirmBtn:"Confirm appointment",confirming:"Confirming..."},
+  confirm:{title:"Appointment confirmed!",sub:"Your booking is received. Please be on time.",
+    bookingId:"Booking ID",exam:"Exam",date:"Date",time:"Time",name:"Name",phone:"Phone",
+    notified:"has been notified. Please arrive 5 minutes early.",newBooking:"Book another appointment"},
+  adminLogin:{title:"Admin access",pinPh:"PIN",wrongPin:"Incorrect PIN",enterBtn:"Enter",backBtn:"Back"},
+  admin:{panelTitle:"Admin panel",exitAdmin:"Exit admin",total:"Total",today:"Today",upcoming:"Upcoming",
+    appointmentsTab:"Appointments",settingsTab:"Settings",searchPh:"Search by name, date (YYYY-MM-DD), phone, or ID...",
+    noAppointments:"No appointments found.",loadingAppointments:"Loading appointments...",
+    cancelled:"Cancelled",past:"Past",confirmed:"Confirmed",cancelBtn:"Cancel",age:"Age",ref:"Ref",
+    settingsTitle:"Settings",settingsSub:"Update clinic info, email recipients, and API keys.",
+    clinicName:"Clinic name",clinicNamePh:"e.g. Dr. Smith Ophthalmology Clinic",
+    doctorEmail:"Doctor's email (notifications)",doctorEmailPh:"doctor@example.com",
+    secretaryEmail:"Secretary's email (notifications)",secretaryEmailPh:"secretary@example.com",
+    adminPin:"Admin PIN",adminPinPh:"4+ digit PIN",gasUrl:"Google Apps Script URL",
+    gasUrlPh:"https://script.google.com/macros/s/.../exec",
+    apiKey:"Anthropic API key (receipt verification)",apiKeyPh:"sk-ant-...",
+    saveBtn:"Save settings",saving:"Saving...",savedOk:"Settings saved ✓",saveFail:"Save failed — check your Apps Script URL"},
+  setup:{title:"One-time setup",sub:"This takes about 5 minutes. You'll never need to do it again.",
+    step1:"Create backend",step2:"Connect app",
+    gasTitle:"Set up Google Sheets backend",
+    gasDesc:"This stores bookings and sends email notifications — for free, using your Google account.",
+    gasSteps:[
+      "Go to sheets.new — create a new Google Sheet (any name)",
+      "Click Extensions → Apps Script in the menu bar",
+      "Delete all existing code in the editor",
+      "Download and open the file clinic_backend.gs, copy all its contents",
+      "Paste the code into Apps Script, then Save (Ctrl+S)",
+      "Click Deploy → New deployment → Web app",
+      "Set 'Execute as: Me' and 'Who has access: Anyone'",
+      "Click Deploy, then Authorize when prompted",
+      "Copy the Web App URL and paste it in Step 2 below"
+    ],
+    noteText:"The file clinic_backend.gs was provided alongside this HTML file. If you don't have it, ask for it again.",
+    nextBtn:"I've deployed it — next",
+    connectTitle:"Connect the app",gasUrlLabel:"Apps Script Web App URL *",
+    gasUrlPh:"https://script.google.com/macros/s/.../exec",
+    clinicNameLabel:"Clinic name",clinicNamePh:"e.g. Dr. Smith Ophthalmology Clinic",
+    pinLabel:"Admin PIN",pinSub:"(to access the admin panel)",pinPh:"default: 1234",
+    apiKeyLabel:"Anthropic API key",apiKeySub:"(for AI receipt verification)",apiKeyPh:"sk-ant-...",
+    apiKeyNote:"Get one at console.anthropic.com. Without it, receipts can't be verified by AI but patients can still book.",
+    emailNote:"Doctor and secretary emails are added in Admin → Settings after setup.",
+    back:"Back",completeBtn:"Complete setup",connecting:"Connecting...",
+    errNoUrl:"Please enter the Apps Script Web App URL.",
+    errConnect:"Could not reach the Apps Script URL. Please check it and try again. Error:"}
+},
+ar: {
+  dir:"rtl", clinicTagline:"حجز المواعيد عبر الإنترنت", langBtn:"English",
+  steps:["نوع الكشف","التاريخ والوقت","بياناتك","الدفع","المراجعة"],
+  exam:{title:"اختر نوع الكشف",sub:"اختر الموعد الذي تحتاجه. الدفع عبر إنستاباي مطلوب قبل الزيارة.",
+    regularName:"كشف عام",regularDesc:"قياس حدة الإبصار، فحص النظر، وتقييم شامل للعين",
+    sensoName:"كشف الحول",sensoDesc:"تقييم متخصص للحول — حركة العين والتوازن البصري",
+    currency:"جنيه",continue:"متابعة"},
+  date:{title:"اختر التاريخ",sub:"أيام العيادة: السبت · الأحد · الأربعاء",availTimes:"المواعيد المتاحة",
+    cairoTime:"بتوقيت القاهرة",fullyBooked:"هذا اليوم محجوز بالكامل — يرجى اختيار تاريخ آخر.",
+    loading:"جاري تحميل المواعيد...",back:"رجوع",continue:"متابعة"},
+  info:{title:"بياناتك",sub:"يرجى إدخال بياناتك. رقم هاتفك هو وسيلة تواصل العيادة معك.",
+    name:"الاسم بالكامل *",namePh:"مثال: أحمد محمد",phone:"رقم الهاتف *",phonePh:"01xxxxxxxxx",
+    email:"البريد الإلكتروني",emailOpt:"(اختياري)",emailPh:"your@email.com",age:"السن *",agePh:"السن",
+    gender:"النوع *",genderSelect:"اختر...",male:"ذكر",female:"أنثى",back:"رجوع",continue:"متابعة"},
+  payment:{title:"الدفع عبر إنستاباي",sub:"حوّل المبلغ كاملاً عبر إنستاباي، ثم ارفع صورة من إيصال التحويل.",
+    amountDue:"المبلغ المطلوب",transferNote:"حوّل عبر إنستاباي، التقط صورة للتأكيد، ثم ارفعها بالأسفل.",
+    dropHere:"اضغط هنا أو اسحب الإيصال",fileTypes:"JPG أو PNG أو HEIC أو PDF",verifyBtn:"تحقق من الإيصال بالذكاء الاصطناعي",
+    analyzing:"جاري تحليل الإيصال...",verifiedTitle:"تم التحقق من الإيصال",failedTitle:"فشل التحقق",
+    ref:"رقم العملية",amountDetected:"المبلغ المكتشف",uploadDifferent:"ارفع إيصالاً آخر",
+    back:"رجوع",reviewBtn:"مراجعة الحجز"},
+  review:{title:"تأكيد الحجز",sub:"يرجى مراجعة جميع البيانات قبل الإرسال.",
+    examination:"نوع الكشف",fee:"الرسوم",date:"التاريخ",time:"الوقت",patientName:"اسم المريض",phone:"رقم الهاتف",
+    email:"البريد الإلكتروني",ageGender:"السن / النوع",payment:"الدفع",paymentVerified:"إنستاباي — تم التحقق ✓",
+    transactionRef:"رقم العملية",confirmNote:"تم التحقق من الدفع. الإرسال يؤكد حجز موعدك.",
+    back:"رجوع",confirmBtn:"تأكيد الموعد",confirming:"جاري التأكيد..."},
+  confirm:{title:"تم تأكيد الموعد!",sub:"تم استلام حجزك. يرجى الحضور في الموعد.",
+    bookingId:"رقم الحجز",exam:"الكشف",date:"التاريخ",time:"الوقت",name:"الاسم",phone:"الهاتف",
+    notified:"تم إخطار العيادة. يرجى الحضور قبل الموعد بـ 5 دقائق.",newBooking:"حجز موعد آخر"},
+  adminLogin:{title:"دخول الإدارة",pinPh:"الرقم السري",wrongPin:"رقم سري خاطئ",enterBtn:"دخول",backBtn:"رجوع"},
+  admin:{panelTitle:"لوحة الإدارة",exitAdmin:"خروج",total:"الإجمالي",today:"اليوم",upcoming:"القادمة",
+    appointmentsTab:"المواعيد",settingsTab:"الإعدادات",searchPh:"بحث بالاسم، التاريخ، الهاتف، أو رقم الحجز...",
+    noAppointments:"لا توجد مواعيد.",loadingAppointments:"جاري تحميل المواعيد...",
+    cancelled:"ملغي",past:"سابق",confirmed:"مؤكد",cancelBtn:"إلغاء",age:"السن",ref:"رقم العملية",
+    settingsTitle:"الإعدادات",settingsSub:"تحديث بيانات العيادة والبريد الإلكتروني ومفاتيح الـ API.",
+    clinicName:"اسم العيادة",clinicNamePh:"مثال: عيادة د. أحمد للعيون",
+    doctorEmail:"بريد الطبيب (للإشعارات)",doctorEmailPh:"doctor@example.com",
+    secretaryEmail:"بريد السكرتيرة (للإشعارات)",secretaryEmailPh:"secretary@example.com",
+    adminPin:"الرقم السري للإدارة",adminPinPh:"4 أرقام أو أكثر",gasUrl:"رابط Google Apps Script",
+    gasUrlPh:"https://script.google.com/macros/s/.../exec",
+    apiKey:"مفتاح Anthropic API (للتحقق من الإيصالات)",apiKeyPh:"sk-ant-...",
+    saveBtn:"حفظ الإعدادات",saving:"جاري الحفظ...",savedOk:"تم حفظ الإعدادات ✓",saveFail:"فشل الحفظ — تحقق من رابط Apps Script"},
+  setup:{title:"إعداد لمرة واحدة",sub:"يستغرق هذا حوالي 5 دقائق. لن تحتاج إلى تكراره مرة أخرى.",
+    step1:"إنشاء الخادم",step2:"ربط التطبيق",
+    gasTitle:"إعداد خادم Google Sheets",
+    gasDesc:"يقوم هذا بتخزين الحجوزات وإرسال إشعارات البريد الإلكتروني — مجاناً، باستخدام حساب Google الخاص بك.",
+    gasSteps:[
+      "اذهب إلى sheets.new — أنشئ جدول بيانات جديد (أي اسم)",
+      "اضغط على Extensions ← Apps Script من القائمة",
+      "احذف كل الكود الموجود في المحرر",
+      "افتح ملف clinic_backend.gs وانسخ محتواه بالكامل",
+      "الصق الكود في Apps Script، ثم احفظ (Ctrl+S)",
+      "اضغط Deploy ← New deployment ← Web app",
+      "اختر 'Execute as: Me' و 'Who has access: Anyone'",
+      "اضغط Deploy، ثم وافق على الصلاحيات",
+      "انسخ رابط Web App والصقه في الخطوة الثانية بالأسفل"
+    ],
+    noteText:"تم تزويدك بملف clinic_backend.gs مع ملف HTML هذا. إذا لم يكن لديك الملف، يرجى طلبه مرة أخرى.",
+    nextBtn:"تم النشر — التالي",
+    connectTitle:"ربط التطبيق",gasUrlLabel:"رابط Apps Script Web App *",
+    gasUrlPh:"https://script.google.com/macros/s/.../exec",
+    clinicNameLabel:"اسم العيادة",clinicNamePh:"مثال: عيادة د. أحمد للعيون",
+    pinLabel:"الرقم السري للإدارة",pinSub:"(للدخول إلى لوحة الإدارة)",pinPh:"الافتراضي: 1234",
+    apiKeyLabel:"مفتاح Anthropic API",apiKeySub:"(للتحقق من الإيصالات بالذكاء الاصطناعي)",apiKeyPh:"sk-ant-...",
+    apiKeyNote:"احصل عليه من console.anthropic.com. بدونه، لا يمكن التحقق من الإيصالات تلقائياً لكن يمكن للمرضى الحجز.",
+    emailNote:"يتم إضافة بريد الطبيب والسكرتيرة من لوحة الإدارة ← الإعدادات بعد الإعداد.",
+    back:"رجوع",completeBtn:"إكمال الإعداد",connecting:"جاري الربط...",
+    errNoUrl:"يرجى إدخال رابط Apps Script Web App.",
+    errConnect:"تعذر الوصول إلى رابط Apps Script. يرجى التحقق والمحاولة مرة أخرى. الخطأ:"}
+}
+};
+
 // ── Schedule & exams ─────────────────────────────────────────
 const SCH = {6:{s:13,e:17},0:{s:15,e:19},3:{s:14,e:19}};
-const EXAMS = [
-  {id:"regular",      name:"Regular examination",      desc:"Visual acuity, refraction, and comprehensive eye assessment", price:500},
-  {id:"sensorimotor", name:"Sensorimotor examination", desc:"Specialised strabismus evaluation — ocular motility and binocular alignment", price:700},
-];
+const EXAM_IDS = ["regular","sensorimotor"];
+const EXAM_PRICE = {regular:500, sensorimotor:700};
 
 // ── localStorage helpers ─────────────────────────────────────
 const ls = {
@@ -59,10 +202,9 @@ async function gasPost(data) {
   } catch(e) { return {error:e.message}; }
 }
 
-async function verifyReceipt(examId, price, b64, mime) {
+async function verifyReceipt(examId, price, b64, mime, examName) {
   const key = ls.get("clinic_api_key");
   if (!key) return {verified:false, reason:"No Anthropic API key configured in Admin → Settings."};
-  const exam = EXAMS.find(e => e.id === examId);
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method:"POST",
@@ -71,7 +213,7 @@ async function verifyReceipt(examId, price, b64, mime) {
         model:"claude-sonnet-4-6", max_tokens:500,
         messages:[{role:"user",content:[
           {type:"image",source:{type:"base64",media_type:mime||"image/jpeg",data:b64}},
-          {type:"text",text:`Verify this Instapay payment receipt for an Egyptian clinic.\nRequired: ${price} EGP for "${exam.name}".\nRespond ONLY with valid JSON (no markdown):\n{"isInstapay":boolean,"amount":number_or_null,"amountMatches":boolean,"transactionRef":"ref_or_null","transactionDate":"date_or_null","verified":boolean,"reason":"one sentence"}\n"verified"=true ONLY if clearly Instapay AND amount=${price} EGP.`}
+          {type:"text",text:`Verify this Instapay payment receipt for an Egyptian clinic.\nRequired: ${price} EGP for "${examName}".\nRespond ONLY with valid JSON (no markdown):\n{"isInstapay":boolean,"amount":number_or_null,"amountMatches":boolean,"transactionRef":"ref_or_null","transactionDate":"date_or_null","verified":boolean,"reason":"one sentence"}\n"verified"=true ONLY if clearly Instapay AND amount=${price} EGP.`}
         ]}]
       })
     });
@@ -88,17 +230,32 @@ function getSlots(dow) {
   for(let h=s.s;h<s.e;h++) for(let m=0;m<60;m+=10) out.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
   return out;
 }
-function fmtT(t) {
-  const [h,m]=t.split(":").map(Number),p=h>=12?"PM":"AM",dh=h>12?h-12:h===0?12:h;
+function fmtT(t,lang) {
+  const [h,m]=t.split(":").map(Number);
+  const dh=h>12?h-12:h===0?12:h;
+  if(lang==="ar"){
+    const p=h>=12?"م":"ص";
+    return `${dh}:${String(m).padStart(2,"0")} ${p}`;
+  }
+  const p=h>=12?"PM":"AM";
   return `${dh}:${String(m).padStart(2,"0")} ${p}`;
 }
 function dKey(d) {
   if(typeof d==="string") return d;
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
-function fmtD(d) {
+function fmtD(d,lang) {
   const dt=typeof d==="string"?new Date(d+"T12:00:00"):d;
-  return dt.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const locale = lang==="ar" ? "ar-EG-u-nu-latn" : "en-GB";
+  return dt.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+function dayShort(d,lang){
+  const locale = lang==="ar" ? "ar-EG-u-nu-latn" : "en-GB";
+  return d.toLocaleDateString(locale,{weekday:"short"});
+}
+function monthYear(d,lang){
+  const locale = lang==="ar" ? "ar-EG-u-nu-latn" : "en-GB";
+  return d.toLocaleDateString(locale,{month:"long",year:"numeric"});
 }
 function upcoming() {
   const dates=[],today=new Date();today.setHours(0,0,0,0);
@@ -109,13 +266,13 @@ function toB64(file) {
   return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});
 }
 
-// ── Design tokens ────────────────────────────────────────────
-const T="#1A5C75",TL="#E1F5EE",BG="#F0F5FA",BD="#D8E3EE",TX="#1C2B3A",MT="#6B7A8D",
-      GR="#1E7D44",GL="#EAF5ED",RD="#B33A2E",RL="#FDECEA",AM="#B8811E",AL="#FEF6E4";
-const b={
+// ── Design tokens (matched to clinic site: deep teal + gold accent) ──
+const T="#0F5C70",T2="#0C4A5A",TL="#E3F1F0",BG="#F5F8FA",BD="#DCE6EA",TX="#102A38",MT="#5F7480",
+      GR="#1E7D44",GL="#EAF5ED",RD="#B33A2E",RL="#FDECEA",AM="#B8893A",AL="#FBF3E6";
+const bs={
   card:{background:"#fff",borderRadius:14,padding:"22px 24px",marginBottom:14,border:`1px solid ${BD}`},
-  h1:{fontSize:20,fontWeight:500,color:TX,margin:"0 0 4px"},
-  sub:{color:MT,fontSize:13,margin:"0 0 16px"},
+  h1:{fontSize:20,fontWeight:600,color:TX,margin:"0 0 4px"},
+  sub:{color:MT,fontSize:13,margin:"0 0 16px",lineHeight:1.6},
   lbl:{fontSize:12,fontWeight:500,color:TX,marginBottom:4,display:"block"},
   inp:{width:"100%",padding:"9px 13px",borderRadius:8,border:`1px solid ${BD}`,fontSize:13,color:TX,outline:"none",boxSizing:"border-box",background:"#fff"},
   btn:{background:T,color:"#fff",border:"none",padding:"11px 24px",borderRadius:9,fontWeight:500,fontSize:14,cursor:"pointer"},
@@ -125,12 +282,20 @@ const b={
   sRow:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${BD}`,fontSize:13},
 };
 
+// Back/next icon flips direction in RTL
+function BackIcon({lang}){ return <i className={`ti ti-arrow-${lang==="ar"?"right":"left"}`} style={{marginInlineEnd:4}}/>; }
+function FwdIcon({lang}){ return <i className={`ti ti-arrow-${lang==="ar"?"left":"right"}`} style={{marginInlineStart:4}}/>; }
+
 // ── Step 1: Exam type ────────────────────────────────────────
-function ExamStep({exam,setExam,onNext}){
+function ExamStep({exam,setExam,onNext,t,lang}){
+  const EXAMS = [
+    {id:"regular",name:t.exam.regularName,desc:t.exam.regularDesc,price:EXAM_PRICE.regular},
+    {id:"sensorimotor",name:t.exam.sensoName,desc:t.exam.sensoDesc,price:EXAM_PRICE.sensorimotor},
+  ];
   return(
-    <div style={b.card}>
-      <h1 style={b.h1}>Select examination type</h1>
-      <p style={b.sub}>Choose the appointment you need. Payment via Instapay is required before your visit.</p>
+    <div style={bs.card}>
+      <h1 style={bs.h1}>{t.exam.title}</h1>
+      <p style={bs.sub}>{t.exam.sub}</p>
       {EXAMS.map(e=>{const sel=exam===e.id;return(
         <div key={e.id} onClick={()=>setExam(e.id)} style={{display:"flex",alignItems:"center",gap:14,border:`2px solid ${sel?T:BD}`,borderRadius:11,padding:"14px 18px",cursor:"pointer",marginBottom:10,background:sel?TL:"#fff",transition:"all 0.15s"}}>
           <div style={{width:38,height:38,borderRadius:9,flexShrink:0,background:sel?T:BG,display:"flex",alignItems:"center",justifyContent:"center",color:sel?"#fff":T}}>
@@ -140,23 +305,23 @@ function ExamStep({exam,setExam,onNext}){
             <div style={{fontWeight:500,fontSize:15,color:TX}}>{e.name}</div>
             <div style={{color:MT,fontSize:12,marginTop:2}}>{e.desc}</div>
           </div>
-          <div style={{fontSize:20,fontWeight:500,color:AM,flexShrink:0}}>{e.price.toLocaleString()} <span style={{fontSize:12}}>LE</span></div>
+          <div style={{fontSize:20,fontWeight:600,color:AM,flexShrink:0}}>{e.price.toLocaleString()} <span style={{fontSize:12,fontWeight:500}}>{t.exam.currency}</span></div>
         </div>
       );})}
-      <div style={{...b.row,justifyContent:"flex-end"}}>
-        <button style={{...b.btn,opacity:exam?1:0.4}} onClick={onNext} disabled={!exam}>Continue <i className="ti ti-arrow-right" style={{marginLeft:4}}/></button>
+      <div style={{...bs.row,justifyContent:"flex-end"}}>
+        <button style={{...bs.btn,opacity:exam?1:0.4}} onClick={onNext} disabled={!exam}>{t.exam.continue} <FwdIcon lang={lang}/></button>
       </div>
     </div>
   );
 }
 
 // ── Step 2: Date & Time ──────────────────────────────────────
-function DateStep({selDate,setSelDate,selTime,setSelTime,onBack,onNext}){
+function DateStep({selDate,setSelDate,selTime,setSelTime,onBack,onNext,t,lang}){
   const [booked,setBooked]=useState([]);
   const [loading,setLoading]=useState(false);
   const avail=upcoming();
   const months={};
-  avail.forEach(d=>{const k=d.toLocaleDateString("en-GB",{month:"long",year:"numeric"});if(!months[k])months[k]=[];months[k].push(d);});
+  avail.forEach(d=>{const k=monthYear(d,lang);if(!months[k])months[k]=[];months[k].push(d);});
   const allSlots=selDate?getSlots(selDate.getDay()):[];
 
   useEffect(()=>{
@@ -167,17 +332,17 @@ function DateStep({selDate,setSelDate,selTime,setSelTime,onBack,onNext}){
 
   return(
     <div>
-      <div style={b.card}>
-        <h1 style={b.h1}>Choose a date</h1>
-        <p style={b.sub}>Clinic days: Saturday · Sunday · Wednesday</p>
+      <div style={bs.card}>
+        <h1 style={bs.h1}>{t.date.title}</h1>
+        <p style={bs.sub}>{t.date.sub}</p>
         {Object.entries(months).map(([month,dates])=>(
           <div key={month} style={{marginBottom:16}}>
-            <div style={{fontSize:10,fontWeight:500,color:MT,letterSpacing:"1px",textTransform:"uppercase",marginBottom:7}}>{month}</div>
+            <div style={{fontSize:10,fontWeight:600,color:MT,letterSpacing:"1px",textTransform:"uppercase",marginBottom:7}}>{month}</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
               {dates.map(d=>{const sel=selDate&&dKey(d)===dKey(selDate);return(
-                <button key={dKey(d)} onClick={()=>setSelDate(d)} style={{padding:"9px 12px",borderRadius:10,border:`1.5px solid ${sel?T:BD}`,background:sel?TL:"#fff",cursor:"pointer",textAlign:"center",minWidth:64,color:sel?T:TX,fontWeight:sel?500:400}}>
-                  <div style={{fontSize:17,fontWeight:500}}>{d.getDate()}</div>
-                  <div style={{fontSize:10,opacity:0.8}}>{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]}</div>
+                <button key={dKey(d)} onClick={()=>setSelDate(d)} style={{padding:"9px 12px",borderRadius:10,border:`1.5px solid ${sel?T:BD}`,background:sel?TL:"#fff",cursor:"pointer",textAlign:"center",minWidth:64,color:sel?T:TX,fontWeight:sel?600:400}}>
+                  <div style={{fontSize:17,fontWeight:600}}>{d.getDate()}</div>
+                  <div style={{fontSize:10,opacity:0.8}}>{dayShort(d,lang)}</div>
                 </button>
               );})}
             </div>
@@ -185,76 +350,76 @@ function DateStep({selDate,setSelDate,selTime,setSelTime,onBack,onNext}){
         ))}
       </div>
       {selDate&&(
-        <div style={b.card}>
-          <div style={{fontWeight:500,fontSize:15,color:TX,marginBottom:2}}>Available times</div>
-          <p style={b.sub}>{fmtD(selDate)} · Cairo time (EET)</p>
+        <div style={bs.card}>
+          <div style={{fontWeight:600,fontSize:15,color:TX,marginBottom:2}}>{t.date.availTimes}</div>
+          <p style={bs.sub}>{fmtD(selDate,lang)} · {t.date.cairoTime}</p>
           {loading
-            ? <div style={{color:MT,fontSize:13,padding:"8px 0"}}><i className="ti ti-loader" style={{marginRight:5}}/>Loading slots...</div>
+            ? <div style={{color:MT,fontSize:13,padding:"8px 0"}}><i className="ti ti-loader" style={{marginInlineEnd:5}}/>{t.date.loading}</div>
             : <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
-                {allSlots.map(t=>{const bk=booked.includes(t),sel=selTime===t;return(
-                  <button key={t} onClick={()=>!bk&&setSelTime(t)} disabled={bk} style={{padding:"7px 12px",borderRadius:8,fontSize:12,fontWeight:500,border:`1.5px solid ${bk?RL:sel?T:BD}`,background:bk?RL:sel?TL:"#fff",color:bk?RD:sel?T:TX,cursor:bk?"not-allowed":"pointer",opacity:bk?0.6:1}}>
-                    {fmtT(t)}
+                {allSlots.map(time=>{const bk=booked.includes(time),sel=selTime===time;return(
+                  <button key={time} onClick={()=>!bk&&setSelTime(time)} disabled={bk} style={{padding:"7px 12px",borderRadius:8,fontSize:12,fontWeight:500,border:`1.5px solid ${bk?RL:sel?T:BD}`,background:bk?RL:sel?TL:"#fff",color:bk?RD:sel?T:TX,cursor:bk?"not-allowed":"pointer",opacity:bk?0.6:1}}>
+                    {fmtT(time,lang)}
                   </button>
                 );})}
               </div>
           }
           {!loading&&allSlots.length>0&&booked.length===allSlots.length&&(
-            <p style={{color:RD,fontSize:12,marginTop:10}}>This day is fully booked — please choose another date.</p>
+            <p style={{color:RD,fontSize:12,marginTop:10}}>{t.date.fullyBooked}</p>
           )}
         </div>
       )}
-      <div style={b.row}>
-        <button style={b.ghost} onClick={onBack}><i className="ti ti-arrow-left" style={{marginRight:4}}/> Back</button>
-        <button style={{...b.btn,opacity:selDate&&selTime?1:0.4}} onClick={onNext} disabled={!selDate||!selTime}>Continue <i className="ti ti-arrow-right" style={{marginLeft:4}}/></button>
+      <div style={bs.row}>
+        <button style={bs.ghost} onClick={onBack}><BackIcon lang={lang}/>{t.date.back}</button>
+        <button style={{...bs.btn,opacity:selDate&&selTime?1:0.4}} onClick={onNext} disabled={!selDate||!selTime}>{t.date.continue} <FwdIcon lang={lang}/></button>
       </div>
     </div>
   );
 }
 
 // ── Step 3: Patient info ─────────────────────────────────────
-function InfoStep({info,setInfo,onBack,onNext}){
+function InfoStep({info,setInfo,onBack,onNext,t,lang}){
   const set=(k,v)=>setInfo(p=>({...p,[k]:v}));
   const ok=info.name.trim()&&info.phone.trim()&&info.age&&info.gender;
   return(
-    <div style={b.card}>
-      <h1 style={b.h1}>Your information</h1>
-      <p style={b.sub}>Fill in your details. Your phone number is how the clinic will reach you.</p>
+    <div style={bs.card}>
+      <h1 style={bs.h1}>{t.info.title}</h1>
+      <p style={bs.sub}>{t.info.sub}</p>
       <div style={{marginBottom:12}}>
-        <label style={b.lbl}>Full name *</label>
-        <input style={b.inp} placeholder="e.g. Ahmed Mohamed" value={info.name} onChange={e=>set("name",e.target.value)}/>
+        <label style={bs.lbl}>{t.info.name}</label>
+        <input style={bs.inp} placeholder={t.info.namePh} value={info.name} onChange={e=>set("name",e.target.value)}/>
       </div>
-      <div style={{...b.g2,marginBottom:12}}>
-        <div><label style={b.lbl}>Phone number *</label><input style={b.inp} placeholder="01xxxxxxxxx" value={info.phone} onChange={e=>set("phone",e.target.value)}/></div>
-        <div><label style={b.lbl}>Email <span style={{fontWeight:400,color:MT}}>(optional)</span></label><input style={b.inp} type="email" placeholder="your@email.com" value={info.email} onChange={e=>set("email",e.target.value)}/></div>
+      <div style={{...bs.g2,marginBottom:12}}>
+        <div><label style={bs.lbl}>{t.info.phone}</label><input style={bs.inp} placeholder={t.info.phonePh} value={info.phone} onChange={e=>set("phone",e.target.value)}/></div>
+        <div><label style={bs.lbl}>{t.info.email} <span style={{fontWeight:400,color:MT}}>{t.info.emailOpt}</span></label><input style={bs.inp} type="email" placeholder={t.info.emailPh} value={info.email} onChange={e=>set("email",e.target.value)}/></div>
       </div>
-      <div style={b.g2}>
-        <div><label style={b.lbl}>Age *</label><input style={b.inp} type="number" placeholder="Your age" min={1} max={120} value={info.age} onChange={e=>set("age",e.target.value)}/></div>
-        <div><label style={b.lbl}>Gender *</label>
-          <select style={b.inp} value={info.gender} onChange={e=>set("gender",e.target.value)}>
-            <option value="">Select...</option><option>Male</option><option>Female</option>
+      <div style={bs.g2}>
+        <div><label style={bs.lbl}>{t.info.age}</label><input style={bs.inp} type="number" placeholder={t.info.agePh} min={1} max={120} value={info.age} onChange={e=>set("age",e.target.value)}/></div>
+        <div><label style={bs.lbl}>{t.info.gender}</label>
+          <select style={bs.inp} value={info.gender} onChange={e=>set("gender",e.target.value)}>
+            <option value="">{t.info.genderSelect}</option><option>{t.info.male}</option><option>{t.info.female}</option>
           </select>
         </div>
       </div>
-      <div style={b.row}>
-        <button style={b.ghost} onClick={onBack}><i className="ti ti-arrow-left" style={{marginRight:4}}/> Back</button>
-        <button style={{...b.btn,opacity:ok?1:0.4}} onClick={onNext} disabled={!ok}>Continue <i className="ti ti-arrow-right" style={{marginLeft:4}}/></button>
+      <div style={bs.row}>
+        <button style={bs.ghost} onClick={onBack}><BackIcon lang={lang}/>{t.info.back}</button>
+        <button style={{...bs.btn,opacity:ok?1:0.4}} onClick={onNext} disabled={!ok}>{t.info.continue} <FwdIcon lang={lang}/></button>
       </div>
     </div>
   );
 }
 
 // ── Step 4: Payment ──────────────────────────────────────────
-function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onBack,onNext}){
+function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onBack,onNext,t,lang}){
   const ref=useRef();
   return(
-    <div style={b.card}>
-      <h1 style={b.h1}>Payment via Instapay</h1>
-      <p style={b.sub}>Send the full amount via Instapay, then upload a screenshot of your receipt.</p>
-      <div style={{background:AL,borderRadius:11,padding:"14px 18px",marginBottom:18,border:`1px solid #F0C070`}}>
-        <div style={{fontSize:11,fontWeight:500,color:AM,textTransform:"uppercase",letterSpacing:"0.8px",marginBottom:3}}>Amount due</div>
-        <div style={{fontSize:28,fontWeight:500,color:"#8A5E0A"}}>{exam?.price?.toLocaleString()} <span style={{fontSize:15}}>EGP</span></div>
+    <div style={bs.card}>
+      <h1 style={bs.h1}>{t.payment.title}</h1>
+      <p style={bs.sub}>{t.payment.sub}</p>
+      <div style={{background:AL,borderRadius:11,padding:"14px 18px",marginBottom:18,border:`1px solid #E4C988`}}>
+        <div style={{fontSize:11,fontWeight:600,color:AM,textTransform:"uppercase",letterSpacing:"0.8px",marginBottom:3}}>{t.payment.amountDue}</div>
+        <div style={{fontSize:28,fontWeight:600,color:"#7A5A1E"}}>{exam?.price?.toLocaleString()} <span style={{fontSize:15}}>{lang==="ar"?"جنيه":"EGP"}</span></div>
         <div style={{fontSize:12,color:AM,marginTop:1}}>{exam?.name}</div>
-        <div style={{fontSize:12,color:MT,marginTop:6}}>Transfer via <strong>Instapay</strong>, screenshot the confirmation, then upload it below.</div>
+        <div style={{fontSize:12,color:MT,marginTop:6}}>{t.payment.transferNote}</div>
       </div>
       <div onClick={()=>ref.current.click()} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();onFile(e.dataTransfer.files[0]);}}
         style={{border:`2px dashed ${receipt?T:BD}`,borderRadius:11,padding:recPrev?6:26,textAlign:"center",cursor:"pointer",background:"#FAFBFC"}}>
@@ -262,84 +427,110 @@ function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onBack,o
           ?<img src={recPrev} alt="Receipt" style={{maxWidth:"100%",maxHeight:200,borderRadius:8,objectFit:"contain"}}/>
           :recPrev?<div style={{padding:14,color:T,fontSize:13}}><i className="ti ti-file" style={{fontSize:28,display:"block",marginBottom:4}}/>{receipt.name}</div>
           :<><i className="ti ti-upload" style={{fontSize:32,color:MT,display:"block",marginBottom:8}}/>
-            <div style={{fontWeight:500,color:TX,marginBottom:2,fontSize:14}}>Click or drop receipt here</div>
-            <div style={{fontSize:12,color:MT}}>JPG, PNG, HEIC or PDF</div></>
+            <div style={{fontWeight:500,color:TX,marginBottom:2,fontSize:14}}>{t.payment.dropHere}</div>
+            <div style={{fontSize:12,color:MT}}>{t.payment.fileTypes}</div></>
         }
         <input ref={ref} type="file" accept="image/*,application/pdf" style={{display:"none"}} onChange={e=>onFile(e.target.files[0])}/>
       </div>
-      {receipt&&!vfying&&!verif&&<button style={{...b.btn,width:"100%",marginTop:10}} onClick={onVerify}><i className="ti ti-scan" style={{marginRight:6}}/>Verify receipt with AI</button>}
-      {vfying&&<div style={{textAlign:"center",padding:"12px 0",color:MT,fontSize:13}}><i className="ti ti-loader" style={{marginRight:5}}/>Analysing receipt...</div>}
+      {receipt&&!vfying&&!verif&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onVerify}><i className="ti ti-scan" style={{marginInlineEnd:6}}/>{t.payment.verifyBtn}</button>}
+      {vfying&&<div style={{textAlign:"center",padding:"12px 0",color:MT,fontSize:13}}><i className="ti ti-loader" style={{marginInlineEnd:5}}/>{t.payment.analyzing}</div>}
       {verif&&(
         <div style={{marginTop:12,padding:"13px 14px",borderRadius:10,background:verif.verified?GL:RL,border:`1px solid ${verif.verified?"#A9DFC0":"#F5B7B1"}`,display:"flex",gap:10,alignItems:"flex-start"}}>
           <i className={`ti ti-${verif.verified?"circle-check":"circle-x"}`} style={{fontSize:20,color:verif.verified?GR:RD,flexShrink:0,marginTop:1}}/>
           <div>
-            <div style={{fontWeight:500,color:verif.verified?GR:RD,fontSize:13}}>{verif.verified?"Receipt verified":"Verification failed"}</div>
+            <div style={{fontWeight:600,color:verif.verified?GR:RD,fontSize:13}}>{verif.verified?t.payment.verifiedTitle:t.payment.failedTitle}</div>
             <div style={{fontSize:12,color:TX,marginTop:2}}>{verif.reason}</div>
-            {verif.transactionRef&&<div style={{fontSize:11,color:MT,marginTop:2}}>Ref: {verif.transactionRef}</div>}
-            {verif.amount&&<div style={{fontSize:11,color:MT}}>Amount detected: {verif.amount} EGP</div>}
+            {verif.transactionRef&&<div style={{fontSize:11,color:MT,marginTop:2}}>{t.payment.ref}: {verif.transactionRef}</div>}
+            {verif.amount&&<div style={{fontSize:11,color:MT}}>{t.payment.amountDetected}: {verif.amount} EGP</div>}
           </div>
         </div>
       )}
-      {verif&&!verif.verified&&<button style={{...b.ghost,width:"100%",marginTop:8}} onClick={()=>onFile(null)}><i className="ti ti-refresh" style={{marginRight:5}}/>Upload a different receipt</button>}
-      <div style={b.row}>
-        <button style={b.ghost} onClick={onBack}><i className="ti ti-arrow-left" style={{marginRight:4}}/> Back</button>
-        <button style={{...b.btn,opacity:verif?.verified?1:0.4}} onClick={onNext} disabled={!verif?.verified}>Review booking <i className="ti ti-arrow-right" style={{marginLeft:4}}/></button>
+      {verif&&!verif.verified&&<button style={{...bs.ghost,width:"100%",marginTop:8}} onClick={()=>onFile(null)}><i className="ti ti-refresh" style={{marginInlineEnd:5}}/>{t.payment.uploadDifferent}</button>}
+      <div style={bs.row}>
+        <button style={bs.ghost} onClick={onBack}><BackIcon lang={lang}/>{t.payment.back}</button>
+        <button style={{...bs.btn,opacity:verif?.verified?1:0.4}} onClick={onNext} disabled={!verif?.verified}>{t.payment.reviewBtn} <FwdIcon lang={lang}/></button>
       </div>
     </div>
   );
 }
 
 // ── Step 5: Review ───────────────────────────────────────────
-function ReviewStep({exam,selDate,selTime,info,verif,submitting,onBack,onSubmit}){
+function ReviewStep({exam,selDate,selTime,info,verif,submitting,onBack,onSubmit,t,lang}){
   const rows=[
-    ["Examination",exam?.name],["Fee",`${exam?.price?.toLocaleString()} EGP`],
-    ["Date",fmtD(selDate)],["Time",fmtT(selTime)],
-    ["Patient name",info.name],["Phone number",info.phone],
-    info.email&&["Email",info.email],
-    ["Age / gender",`${info.age} yrs / ${info.gender}`],
-    ["Payment","Instapay — verified ✓"],
-    verif?.transactionRef&&["Transaction ref",verif.transactionRef],
+    [t.review.examination,exam?.name],[t.review.fee,`${exam?.price?.toLocaleString()} ${lang==="ar"?"جنيه":"EGP"}`],
+    [t.review.date,fmtD(selDate,lang)],[t.review.time,fmtT(selTime,lang)],
+    [t.review.patientName,info.name],[t.review.phone,info.phone],
+    info.email&&[t.review.email,info.email],
+    [t.review.ageGender,`${info.age} ${lang==="ar"?"سنة":"yrs"} / ${info.gender}`],
+    [t.review.payment,t.review.paymentVerified],
+    verif?.transactionRef&&[t.review.transactionRef,verif.transactionRef],
   ].filter(Boolean);
   return(
-    <div style={b.card}>
-      <h1 style={b.h1}>Confirm your booking</h1>
-      <p style={b.sub}>Please review all details before submitting.</p>
-      {rows.map(([k,v],i,a)=>(<div key={k} style={{...b.sRow,borderBottom:i<a.length-1?`1px solid ${BD}`:"none"}}><span style={{color:MT}}>{k}</span><span style={{fontWeight:500,textAlign:"right",maxWidth:"58%"}}>{v}</span></div>))}
+    <div style={bs.card}>
+      <h1 style={bs.h1}>{t.review.title}</h1>
+      <p style={bs.sub}>{t.review.sub}</p>
+      {rows.map(([k,v],i,a)=>(<div key={k} style={{...bs.sRow,borderBottom:i<a.length-1?`1px solid ${BD}`:"none"}}><span style={{color:MT}}>{k}</span><span style={{fontWeight:600,textAlign:lang==="ar"?"left":"right",maxWidth:"58%"}}>{v}</span></div>))}
       <div style={{background:GL,borderRadius:8,padding:"10px 13px",marginTop:14,fontSize:12,color:GR,display:"flex",gap:7,alignItems:"center"}}>
-        <i className="ti ti-shield-check" style={{flexShrink:0}}/>Your payment has been verified. Submitting confirms your appointment.
+        <i className="ti ti-shield-check" style={{flexShrink:0}}/>{t.review.confirmNote}
       </div>
-      <div style={b.row}>
-        <button style={b.ghost} onClick={onBack}><i className="ti ti-arrow-left" style={{marginRight:4}}/> Back</button>
-        <button style={{...b.btn,opacity:submitting?0.6:1}} onClick={onSubmit} disabled={submitting}>{submitting?"Confirming...":"Confirm appointment"}</button>
+      <div style={bs.row}>
+        <button style={bs.ghost} onClick={onBack}><BackIcon lang={lang}/>{t.review.back}</button>
+        <button style={{...bs.btn,opacity:submitting?0.6:1}} onClick={onSubmit} disabled={submitting}>{submitting?t.review.confirming:t.review.confirmBtn}</button>
       </div>
     </div>
   );
 }
 
 // ── Confirmation ─────────────────────────────────────────────
-function ConfirmView({booking,onNew}){
-  const exam=EXAMS.find(e=>e.id===booking.examType);
-  const rows=[["Booking ID",booking.id],["Exam",exam?.name],["Date",fmtD(booking.date)],["Time",fmtT(booking.time)],["Name",booking.patientName],["Phone",booking.phone]];
+function ConfirmView({booking,onNew,t,lang,clinicName}){
+  const examName = booking.examType==="regular" ? t.exam.regularName : t.exam.sensoName;
+  const rows=[[t.confirm.bookingId,booking.id],[t.confirm.exam,examName],[t.confirm.date,fmtD(booking.date,lang)],[t.confirm.time,fmtT(booking.time,lang)],[t.confirm.name,booking.patientName],[t.confirm.phone,booking.phone]];
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:BG,padding:20}}>
-      <div style={{...b.card,maxWidth:460,width:"100%",textAlign:"center",padding:"36px 28px",marginBottom:0}}>
+      <div style={{...bs.card,maxWidth:460,width:"100%",textAlign:"center",padding:"36px 28px",marginBottom:0}}>
         <div style={{width:64,height:64,borderRadius:"50%",background:GL,border:`2px solid #A9DFC0`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
           <i className="ti ti-check" style={{fontSize:30,color:GR}}/>
         </div>
-        <h1 style={{...b.h1,textAlign:"center",fontSize:21,marginBottom:5}}>Appointment confirmed!</h1>
-        <p style={{color:MT,fontSize:13,marginBottom:20}}>Your booking is received. Please be on time.</p>
-        <div style={{background:BG,borderRadius:11,padding:"14px 16px",textAlign:"left",marginBottom:18}}>
-          {rows.map(([k,v],i,a)=>(<div key={k} style={{...b.sRow,borderBottom:i<a.length-1?`1px solid ${BD}`:"none"}}><span style={{color:MT}}>{k}</span><span style={{fontWeight:500,color:k==="Booking ID"?T:TX}}>{v}</span></div>))}
+        <h1 style={{...bs.h1,textAlign:"center",fontSize:21,marginBottom:5}}>{t.confirm.title}</h1>
+        <p style={{color:MT,fontSize:13,marginBottom:20}}>{t.confirm.sub}</p>
+        <div style={{background:BG,borderRadius:11,padding:"14px 16px",textAlign:lang==="ar"?"right":"left",marginBottom:18}}>
+          {rows.map(([k,v],i,a)=>(<div key={k} style={{...bs.sRow,borderBottom:i<a.length-1?`1px solid ${BD}`:"none"}}><span style={{color:MT}}>{k}</span><span style={{fontWeight:600,color:k===t.confirm.bookingId?T:TX}}>{v}</span></div>))}
         </div>
-        <p style={{fontSize:12,color:MT,marginBottom:18}}>{ls.get("clinic_name")||"The clinic"} has been notified. Please arrive 5 minutes early.</p>
-        <button style={b.btn} onClick={onNew}>Book another appointment</button>
+        <p style={{fontSize:12,color:MT,marginBottom:18}}>{clinicName} {t.confirm.notified}</p>
+        <button style={bs.btn} onClick={onNew}>{t.confirm.newBooking}</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Admin login ──────────────────────────────────────────────
+function AdminLogin({onSuccess,onBack,t,lang,clinicName}){
+  const [pin,setPin]=useState("");
+  const [err,setErr]=useState(false);
+  function tryLogin(){
+    if(pin===(ls.get("clinic_admin_pin")||"1234")){onSuccess();}else{setErr(true);}
+  }
+  return(
+    <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:BG}}>
+      <div style={{...bs.card,width:300,textAlign:"center",padding:"32px 26px",marginBottom:0}}>
+        <div style={{width:52,height:52,borderRadius:"50%",background:TL,border:`1px solid ${BD}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}><i className="ti ti-lock" style={{fontSize:24,color:T}}/></div>
+        <h2 style={{...bs.h1,textAlign:"center",fontSize:18,marginBottom:4}}>{t.adminLogin.title}</h2>
+        <p style={{color:MT,fontSize:12,marginBottom:16}}>{clinicName}</p>
+        <input type="password" placeholder={t.adminLogin.pinPh} value={pin}
+          onChange={e=>{setPin(e.target.value);setErr(false);}}
+          onKeyDown={e=>{if(e.key==="Enter") tryLogin();}}
+          style={{...bs.inp,textAlign:"center",fontSize:20,letterSpacing:8,marginBottom:7,borderColor:err?RD:BD}}
+        />
+        {err&&<p style={{color:RD,fontSize:12,marginBottom:7}}>{t.adminLogin.wrongPin}</p>}
+        <button style={{...bs.btn,width:"100%",marginBottom:8}} onClick={tryLogin}>{t.adminLogin.enterBtn}</button>
+        <button style={{...bs.ghost,width:"100%"}} onClick={onBack}><BackIcon lang={lang}/>{t.adminLogin.backBtn}</button>
       </div>
     </div>
   );
 }
 
 // ── Admin view ───────────────────────────────────────────────
-function AdminView({onLogout}){
+function AdminView({onLogout,t,lang,clinicName}){
   const [tab,setTab]=useState("appointments");
   const [bks,setBks]=useState([]);
   const [loading,setLoading]=useState(false);
@@ -375,60 +566,62 @@ function AdminView({onLogout}){
     ls.set("clinic_admin_pin",sett.adminPin);
     const r=await gasPost({action:"saveSettings",currentPin:adminPin,clinicName:sett.clinicName,doctorEmail:sett.doctorEmail,secretaryEmail:sett.secretaryEmail,adminPin:sett.adminPin});
     setSaving(false);
-    setMsg(r.success?"Settings saved ✓":(r.error||"Save failed — check your Apps Script URL"));
+    setMsg(r.success?t.admin.savedOk:(r.error||t.admin.saveFail));
   }
 
   async function cancel(id){
-    if(!window.confirm("Cancel this appointment?")) return;
+    if(!window.confirm(lang==="ar"?"هل تريد إلغاء هذا الموعد؟":"Cancel this appointment?")) return;
     const r=await gasPost({action:"cancel",id,pin:adminPin});
     if(r.success) setBks(prev=>prev.map(bk=>bk.id===id?{...bk,status:"cancelled"}:bk));
     else alert("Error: "+r.error);
   }
 
+  function examName(id){ return id==="regular" ? t.exam.regularName : id==="sensorimotor" ? t.exam.sensoName : id; }
+
   return(
-    <div style={{minHeight:"100vh",background:BG,fontFamily:"system-ui,sans-serif",color:TX}}>
+    <div style={{minHeight:"100vh",background:BG,color:TX}}>
       <div style={{background:T,color:"#fff",padding:"0 20px"}}>
         <div style={{maxWidth:860,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:56}}>
-          <span style={{fontWeight:500,fontSize:15}}><i className="ti ti-settings" style={{marginRight:7}}/>Admin panel — {ls.get("clinic_name")||"Clinic"}</span>
-          <button onClick={onLogout} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.35)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:500}}>Exit admin</button>
+          <span style={{fontWeight:600,fontSize:15}}><i className="ti ti-settings" style={{marginInlineEnd:7}}/>{t.admin.panelTitle} — {clinicName}</span>
+          <button onClick={onLogout} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.35)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:500}}>{t.admin.exitAdmin}</button>
         </div>
       </div>
       <div style={{maxWidth:860,margin:"0 auto",padding:"20px 16px"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:18}}>
-          {[["Total",bks.length,TX],["Today",bks.filter(b=>b.status!=="cancelled"&&b.date===today).length,T],["Upcoming",bks.filter(b=>b.status!=="cancelled"&&b.date>=today).length,AM]].map(([lbl,ct,c])=>(
-            <div key={lbl} style={{background:"#fff",borderRadius:11,padding:"14px 18px",border:`1px solid ${BD}`,borderLeft:`3px solid ${c}`}}>
-              <div style={{fontSize:24,fontWeight:500,color:c}}>{ct}</div>
-              <div style={{fontSize:11,color:MT,marginTop:1}}>{lbl} appointments</div>
+          {[[t.admin.total,bks.length,TX],[t.admin.today,bks.filter(b=>b.status!=="cancelled"&&b.date===today).length,T],[t.admin.upcoming,bks.filter(b=>b.status!=="cancelled"&&b.date>=today).length,AM]].map(([lbl,ct,c])=>(
+            <div key={lbl} style={{background:"#fff",borderRadius:11,padding:"14px 18px",border:`1px solid ${BD}`,borderInlineStart:`3px solid ${c}`}}>
+              <div style={{fontSize:24,fontWeight:600,color:c}}>{ct}</div>
+              <div style={{fontSize:11,color:MT,marginTop:1}}>{lbl}</div>
             </div>
           ))}
         </div>
         <div style={{display:"flex",gap:7,marginBottom:14}}>
-          {["appointments","settings"].map(t=>(
-            <button key={t} onClick={()=>setTab(t)} style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontWeight:500,fontSize:13,background:tab===t?T:"#fff",color:tab===t?"#fff":MT}}>
-              <i className={`ti ti-${t==="appointments"?"calendar":"adjustments"}`} style={{marginRight:5}}/>{t==="appointments"?"Appointments":"Settings"}
+          {[["appointments",t.admin.appointmentsTab,"calendar"],["settings",t.admin.settingsTab,"adjustments"]].map(([id,lbl,icon])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontWeight:500,fontSize:13,background:tab===id?T:"#fff",color:tab===id?"#fff":MT}}>
+              <i className={`ti ti-${icon}`} style={{marginInlineEnd:5}}/>{lbl}
             </button>
           ))}
         </div>
         {tab==="appointments"&&<>
-          <input style={{...b.inp,marginBottom:12}} placeholder="Search by name, date (YYYY-MM-DD), phone, or ID..." value={filter} onChange={e=>setFilter(e.target.value)}/>
-          {loading&&<div style={{...b.card,textAlign:"center",color:MT,padding:40}}><i className="ti ti-loader" style={{fontSize:26,display:"block",marginBottom:6}}/>Loading appointments...</div>}
-          {!loading&&filtered.length===0&&<div style={{...b.card,textAlign:"center",color:MT,padding:40}}><i className="ti ti-calendar-off" style={{fontSize:28,display:"block",marginBottom:6}}/>No appointments found.</div>}
+          <input style={{...bs.inp,marginBottom:12}} placeholder={t.admin.searchPh} value={filter} onChange={e=>setFilter(e.target.value)}/>
+          {loading&&<div style={{...bs.card,textAlign:"center",color:MT,padding:40}}><i className="ti ti-loader" style={{fontSize:26,display:"block",marginBottom:6}}/>{t.admin.loadingAppointments}</div>}
+          {!loading&&filtered.length===0&&<div style={{...bs.card,textAlign:"center",color:MT,padding:40}}><i className="ti ti-calendar-off" style={{fontSize:28,display:"block",marginBottom:6}}/>{t.admin.noAppointments}</div>}
           {filtered.map(bk=>{
-            const exam=EXAMS.find(e=>e.id===bk.examtype),isPast=bk.date<today;
+            const isPast=bk.date<today;
             const [sbg,sc]=bk.status==="cancelled"?[RL,RD]:isPast?["#F5F5F5",MT]:[GL,GR];
             return(
-              <div key={bk.id} style={{...b.card,marginBottom:9,opacity:bk.status==="cancelled"?0.65:1}}>
+              <div key={bk.id} style={{...bs.card,marginBottom:9,opacity:bk.status==="cancelled"?0.65:1}}>
                 <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between"}}>
                   <div>
-                    <div style={{fontWeight:500,fontSize:14,color:TX}}>{bk.name}</div>
+                    <div style={{fontWeight:600,fontSize:14,color:TX}}>{bk.name}</div>
                     <div style={{color:MT,fontSize:12,marginTop:1}}>{bk.phone}{bk.email?` · ${bk.email}`:""}</div>
-                    <div style={{fontSize:12,marginTop:5}}><strong>{fmtD(bk.date)}</strong> at <strong>{fmtT(bk.time)}</strong></div>
-                    <div style={{fontSize:12,color:T,marginTop:2}}>{exam?.name||bk.examname} — {Number(bk.price)?.toLocaleString()} EGP</div>
-                    <div style={{fontSize:11,color:MT,marginTop:1}}>Age: {bk.age} · {bk.gender}{bk.txref?` · Ref: ${bk.txref}`:""}</div>
+                    <div style={{fontSize:12,marginTop:5}}><strong>{fmtD(bk.date,lang)}</strong> {lang==="ar"?"في":"at"} <strong>{fmtT(bk.time,lang)}</strong></div>
+                    <div style={{fontSize:12,color:T,marginTop:2}}>{examName(bk.examtype)||bk.examname} — {Number(bk.price)?.toLocaleString()} EGP</div>
+                    <div style={{fontSize:11,color:MT,marginTop:1}}>{t.admin.age}: {bk.age} · {bk.gender}{bk.txref?` · ${t.admin.ref}: ${bk.txref}`:""}</div>
                   </div>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:7}}>
-                    <span style={{padding:"3px 11px",borderRadius:20,fontSize:10,fontWeight:500,background:sbg,color:sc}}>{bk.status==="cancelled"?"Cancelled":isPast?"Past":"Confirmed"}</span>
-                    {bk.status!=="cancelled"&&!isPast&&<button onClick={()=>cancel(bk.id)} style={{fontSize:11,color:RD,background:"none",border:`1px solid #F5B7B1`,padding:"3px 9px",borderRadius:6,cursor:"pointer"}}>Cancel</button>}
+                    <span style={{padding:"3px 11px",borderRadius:20,fontSize:10,fontWeight:600,background:sbg,color:sc}}>{bk.status==="cancelled"?t.admin.cancelled:isPast?t.admin.past:t.admin.confirmed}</span>
+                    {bk.status!=="cancelled"&&!isPast&&<button onClick={()=>cancel(bk.id)} style={{fontSize:11,color:RD,background:"none",border:`1px solid #F5B7B1`,padding:"3px 9px",borderRadius:6,cursor:"pointer"}}>{t.admin.cancelBtn}</button>}
                   </div>
                 </div>
               </div>
@@ -436,24 +629,24 @@ function AdminView({onLogout}){
           })}
         </>}
         {tab==="settings"&&(
-          <div style={b.card}>
-            <h2 style={{fontSize:17,fontWeight:500,color:TX,marginBottom:4}}>Settings</h2>
-            <p style={b.sub}>Update clinic info, email recipients, and API keys.</p>
+          <div style={bs.card}>
+            <h2 style={{fontSize:17,fontWeight:600,color:TX,marginBottom:4}}>{t.admin.settingsTitle}</h2>
+            <p style={bs.sub}>{t.admin.settingsSub}</p>
             {[
-              {k:"clinicName",     lbl:"Clinic name",                               t:"text",    ph:"e.g. Dr. Smith Ophthalmology Clinic"},
-              {k:"doctorEmail",    lbl:"Doctor's email (notifications)",             t:"email",   ph:"doctor@example.com"},
-              {k:"secretaryEmail", lbl:"Secretary's email (notifications)",          t:"email",   ph:"secretary@example.com"},
-              {k:"adminPin",       lbl:"Admin PIN",                                  t:"password",ph:"4+ digit PIN"},
-              {k:"gasUrl",         lbl:"Google Apps Script URL",                     t:"url",     ph:"https://script.google.com/macros/s/.../exec"},
-              {k:"apiKey",         lbl:"Anthropic API key (receipt verification)",   t:"password",ph:"sk-ant-..."},
-            ].map(({k,lbl,t,ph})=>(
+              {k:"clinicName",lbl:t.admin.clinicName,ty:"text",ph:t.admin.clinicNamePh},
+              {k:"doctorEmail",lbl:t.admin.doctorEmail,ty:"email",ph:t.admin.doctorEmailPh},
+              {k:"secretaryEmail",lbl:t.admin.secretaryEmail,ty:"email",ph:t.admin.secretaryEmailPh},
+              {k:"adminPin",lbl:t.admin.adminPin,ty:"password",ph:t.admin.adminPinPh},
+              {k:"gasUrl",lbl:t.admin.gasUrl,ty:"url",ph:t.admin.gasUrlPh},
+              {k:"apiKey",lbl:t.admin.apiKey,ty:"password",ph:t.admin.apiKeyPh},
+            ].map(({k,lbl,ty,ph})=>(
               <div key={k} style={{marginBottom:12}}>
-                <label style={b.lbl}>{lbl}</label>
-                <input type={t} placeholder={ph} value={sett[k]||""} onChange={e=>setSett(p=>({...p,[k]:e.target.value}))} style={b.inp}/>
+                <label style={bs.lbl}>{lbl}</label>
+                <input type={ty} placeholder={ph} value={sett[k]||""} onChange={e=>setSett(p=>({...p,[k]:e.target.value}))} style={bs.inp}/>
               </div>
             ))}
             {msg&&<div style={{padding:"8px 12px",borderRadius:7,marginBottom:12,fontSize:13,background:msg.includes("✓")?GL:RL,color:msg.includes("✓")?GR:RD}}>{msg}</div>}
-            <button style={{...b.btn,opacity:saving?0.6:1}} onClick={saveSettings} disabled={saving}><i className="ti ti-device-floppy" style={{marginRight:5}}/>{saving?"Saving...":"Save settings"}</button>
+            <button style={{...bs.btn,opacity:saving?0.6:1}} onClick={saveSettings} disabled={saving}><i className="ti ti-device-floppy" style={{marginInlineEnd:5}}/>{saving?t.admin.saving:t.admin.saveBtn}</button>
           </div>
         )}
       </div>
@@ -462,7 +655,7 @@ function AdminView({onLogout}){
 }
 
 // ── Setup wizard (first-time only) ───────────────────────────
-function SetupView({onDone}){
+function SetupView({onDone,t,lang}){
   const [step,setStep]=useState(1);
   const [gasU,setGasU]=useState("");
   const [apiK,setApiK]=useState("");
@@ -471,20 +664,8 @@ function SetupView({onDone}){
   const [saving,setSaving]=useState(false);
   const [err,setErr]=useState("");
 
-  const GAS_INSTRUCTIONS = [
-    "Go to sheets.new — create a new Google Sheet (any name)",
-    "Click Extensions → Apps Script in the menu bar",
-    "Delete all existing code in the editor",
-    "Download and open the file clinic_backend.gs, copy all its contents",
-    "Paste the code into Apps Script, then Save (Ctrl+S)",
-    "Click Deploy → New deployment → Web app",
-    "Set 'Execute as: Me' and 'Who has access: Anyone'",
-    "Click Deploy, then Authorize when prompted",
-    "Copy the Web App URL and paste it in Step 3 below",
-  ];
-
   async function finish(){
-    if(!gasU.trim()){setErr("Please enter the Apps Script Web App URL.");return;}
+    if(!gasU.trim()){setErr(t.setup.errNoUrl);return;}
     setSaving(true); setErr("");
     ls.set("clinic_gas_url",gasU.trim());
     if(apiK.trim()) ls.set("clinic_api_key",apiK.trim());
@@ -493,7 +674,7 @@ function SetupView({onDone}){
     const r=await gasPost({action:"saveSettings",currentPin:"",clinicName:name,adminPin:pin});
     setSaving(false);
     if(r.success||r.error==="Unknown action") onDone();
-    else setErr("Could not reach the Apps Script URL. Please check it and try again. Error: "+(r.error||"unknown"));
+    else setErr(t.setup.errConnect+" "+(r.error||"unknown"));
   }
 
   return(
@@ -502,67 +683,69 @@ function SetupView({onDone}){
         <div style={{width:56,height:56,borderRadius:"50%",background:TL,border:`1px solid ${BD}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
           <i className="ti ti-settings" style={{fontSize:26,color:T}}/>
         </div>
-        <h1 style={{...b.h1,textAlign:"center",fontSize:22}}>One-time setup</h1>
-        <p style={{color:MT,fontSize:14,marginTop:4}}>This takes about 5 minutes. You'll never need to do it again.</p>
+        <h1 style={{...bs.h1,textAlign:"center",fontSize:22}}>{t.setup.title}</h1>
+        <p style={{color:MT,fontSize:14,marginTop:4}}>{t.setup.sub}</p>
       </div>
 
-      <div style={b.card}>
+      <div style={bs.card}>
         <div style={{display:"flex",gap:8,marginBottom:18,paddingBottom:14,borderBottom:`1px solid ${BD}`}}>
-          {["Create backend","Connect app"].map((lbl,i)=>(
+          {[t.setup.step1,t.setup.step2].map((lbl,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer",opacity:step===i+1?1:0.45}} onClick={()=>setStep(i+1)}>
-              <div style={{width:24,height:24,borderRadius:"50%",background:step===i+1?T:BD,color:step===i+1?"#fff":MT,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:500}}>{i+1}</div>
-              <span style={{fontSize:12,fontWeight:step===i+1?500:400,color:step===i+1?T:MT}}>{lbl}</span>
-              {i===0&&<span style={{color:BD,fontSize:14,marginLeft:4}}>—</span>}
+              <div style={{width:24,height:24,borderRadius:"50%",background:step===i+1?T:BD,color:step===i+1?"#fff":MT,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600}}>{i+1}</div>
+              <span style={{fontSize:12,fontWeight:step===i+1?600:400,color:step===i+1?T:MT}}>{lbl}</span>
             </div>
           ))}
         </div>
 
         {step===1&&(
           <div>
-            <h2 style={{...b.h1,fontSize:17,marginBottom:10}}>Set up Google Sheets backend</h2>
-            <p style={{color:MT,fontSize:13,marginBottom:14}}>This stores bookings and sends email notifications — for free, using your Google account.</p>
-            <ol style={{paddingLeft:20,color:TX,fontSize:13,lineHeight:"2.1"}}>
-              {GAS_INSTRUCTIONS.map((step,i)=><li key={i} dangerouslySetInnerHTML={{__html:step.replace("sheets.new","<a href='https://sheets.new' target='_blank'>sheets.new</a>").replace("clinic_backend.gs","<strong>clinic_backend.gs</strong>")}}/>)}
+            <h2 style={{...bs.h1,fontSize:17,marginBottom:10}}>{t.setup.gasTitle}</h2>
+            <p style={{color:MT,fontSize:13,marginBottom:14}}>{t.setup.gasDesc}</p>
+            <ol style={{paddingInlineStart:20,color:TX,fontSize:13,lineHeight:"2.1"}}>
+              {t.setup.gasSteps.map((s,i)=><li key={i}>{
+                s.includes("sheets.new")
+                  ? <>{s.split("sheets.new")[0]}<a href="https://sheets.new" target="_blank">sheets.new</a>{s.split("sheets.new")[1]}</>
+                  : s.includes("clinic_backend.gs")
+                  ? <>{s.split("clinic_backend.gs")[0]}<strong>clinic_backend.gs</strong>{s.split("clinic_backend.gs")[1]}</>
+                  : s
+              }</li>)}
             </ol>
-            <div style={{background:TL,borderRadius:8,padding:"10px 14px",marginTop:14,fontSize:12,color:"#0E6655",display:"flex",gap:8,alignItems:"flex-start"}}>
+            <div style={{background:TL,borderRadius:8,padding:"10px 14px",marginTop:14,fontSize:12,color:"#0A4A40",display:"flex",gap:8,alignItems:"flex-start"}}>
               <i className="ti ti-info-circle" style={{flexShrink:0,marginTop:1}}/>
-              <span>The file <strong>clinic_backend.gs</strong> was provided alongside this HTML file. If you don't have it, ask for it again.</span>
+              <span>{t.setup.noteText}</span>
             </div>
-            <button style={{...b.btn,marginTop:16}} onClick={()=>setStep(2)}>I've deployed it — next <i className="ti ti-arrow-right" style={{marginLeft:4}}/></button>
+            <button style={{...bs.btn,marginTop:16}} onClick={()=>setStep(2)}>{t.setup.nextBtn} <FwdIcon lang={lang}/></button>
           </div>
         )}
 
         {step===2&&(
           <div>
-            <h2 style={{...b.h1,fontSize:17,marginBottom:10}}>Connect the app</h2>
+            <h2 style={{...bs.h1,fontSize:17,marginBottom:10}}>{t.setup.connectTitle}</h2>
             <div style={{marginBottom:12}}>
-              <label style={b.lbl}>Apps Script Web App URL *</label>
-              <input style={b.inp} placeholder="https://script.google.com/macros/s/.../exec" value={gasU} onChange={e=>setGasU(e.target.value)}/>
+              <label style={bs.lbl}>{t.setup.gasUrlLabel}</label>
+              <input style={bs.inp} placeholder={t.setup.gasUrlPh} value={gasU} onChange={e=>setGasU(e.target.value)}/>
             </div>
             <div style={{marginBottom:12}}>
-              <label style={b.lbl}>Clinic name</label>
-              <input style={b.inp} placeholder="e.g. Dr. Smith Ophthalmology Clinic" value={name} onChange={e=>setName(e.target.value)}/>
+              <label style={bs.lbl}>{t.setup.clinicNameLabel}</label>
+              <input style={bs.inp} placeholder={t.setup.clinicNamePh} value={name} onChange={e=>setName(e.target.value)}/>
             </div>
             <div style={{marginBottom:12}}>
-              <label style={b.lbl}>Admin PIN <span style={{fontWeight:400,color:MT}}>(to access the admin panel)</span></label>
-              <input style={b.inp} type="password" placeholder="default: 1234" value={pin} onChange={e=>setPin(e.target.value)}/>
+              <label style={bs.lbl}>{t.setup.pinLabel} <span style={{fontWeight:400,color:MT}}>{t.setup.pinSub}</span></label>
+              <input style={bs.inp} type="password" placeholder={t.setup.pinPh} value={pin} onChange={e=>setPin(e.target.value)}/>
             </div>
             <div style={{marginBottom:16}}>
-              <label style={b.lbl}>Anthropic API key <span style={{fontWeight:400,color:MT}}>(for AI receipt verification)</span></label>
-              <input style={b.inp} type="password" placeholder="sk-ant-..." value={apiK} onChange={e=>setApiK(e.target.value)}/>
-              <div style={{fontSize:11,color:MT,marginTop:4}}>
-                Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Without it, receipts can't be verified by AI but patients can still book.
-              </div>
+              <label style={bs.lbl}>{t.setup.apiKeyLabel} <span style={{fontWeight:400,color:MT}}>{t.setup.apiKeySub}</span></label>
+              <input style={bs.inp} type="password" placeholder={t.setup.apiKeyPh} value={apiK} onChange={e=>setApiK(e.target.value)}/>
+              <div style={{fontSize:11,color:MT,marginTop:4}}>{t.setup.apiKeyNote}</div>
             </div>
             <div style={{background:AL,borderRadius:7,padding:"10px 13px",marginBottom:14,fontSize:12,color:AM}}>
-              <i className="ti ti-info-circle" style={{marginRight:5}}/>
-              Doctor and secretary emails are added in Admin → Settings after setup.
+              <i className="ti ti-info-circle" style={{marginInlineEnd:5}}/>{t.setup.emailNote}
             </div>
             {err&&<div style={{background:RL,borderRadius:7,padding:"10px 13px",marginBottom:12,fontSize:12,color:RD}}>{err}</div>}
             <div style={{display:"flex",gap:10}}>
-              <button style={b.ghost} onClick={()=>setStep(1)}><i className="ti ti-arrow-left" style={{marginRight:4}}/>Back</button>
-              <button style={{...b.btn,flex:1,opacity:saving?0.6:1}} onClick={finish} disabled={saving}>
-                <i className="ti ti-check" style={{marginRight:5}}/>{saving?"Connecting...":"Complete setup"}
+              <button style={bs.ghost} onClick={()=>setStep(1)}><BackIcon lang={lang}/>{t.setup.back}</button>
+              <button style={{...bs.btn,flex:1,opacity:saving?0.6:1}} onClick={finish} disabled={saving}>
+                <i className="ti ti-check" style={{marginInlineEnd:5}}/>{saving?t.setup.connecting:t.setup.completeBtn}
               </button>
             </div>
           </div>
@@ -572,34 +755,10 @@ function SetupView({onDone}){
   );
 }
 
-// ── Admin login ──────────────────────────────────────────────
-function AdminLogin({onSuccess,onBack}){
-  const [pin,setPin]=useState("");
-  const [err,setErr]=useState(false);
-  function tryLogin(){
-    if(pin===(ls.get("clinic_admin_pin")||"1234")){onSuccess();}else{setErr(true);}
-  }
-  return(
-    <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:BG,fontFamily:"system-ui,sans-serif"}}>
-      <div style={{...b.card,width:300,textAlign:"center",padding:"32px 26px",marginBottom:0}}>
-        <div style={{width:52,height:52,borderRadius:"50%",background:TL,border:`1px solid ${BD}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}><i className="ti ti-lock" style={{fontSize:24,color:T}}/></div>
-        <h2 style={{...b.h1,textAlign:"center",fontSize:18,marginBottom:4}}>Admin access</h2>
-        <p style={{color:MT,fontSize:12,marginBottom:16}}>{ls.get("clinic_name")||"Clinic"}</p>
-        <input type="password" placeholder="PIN" value={pin}
-          onChange={e=>{setPin(e.target.value);setErr(false);}}
-          onKeyDown={e=>{if(e.key==="Enter") tryLogin();}}
-          style={{...b.inp,textAlign:"center",fontSize:20,letterSpacing:8,marginBottom:7,borderColor:err?RD:BD}}
-        />
-        {err&&<p style={{color:RD,fontSize:12,marginBottom:7}}>Incorrect PIN</p>}
-        <button style={{...b.btn,width:"100%",marginBottom:8}} onClick={tryLogin}>Enter</button>
-        <button style={{...b.ghost,width:"100%"}} onClick={onBack}><i className="ti ti-arrow-left" style={{marginRight:4}}/>Back</button>
-      </div>
-    </div>
-  );
-}
-
 // ── Main app ─────────────────────────────────────────────────
 function App(){
+  const [lang,setLang]=useState(ls.get("clinic_lang")||"en");
+  const t = TR[lang];
   const [view,setView]=useState("booking");
   const [step,setStep]=useState(1);
   const [examType,setExamType]=useState(null);
@@ -615,24 +774,41 @@ function App(){
   const [confirmed,setConf]=useState(null);
   const [showSetup,setShowSetup]=useState(!ls.get("clinic_gas_url"));
 
+  useEffect(()=>{
+    document.documentElement.lang = lang;
+    document.documentElement.dir = t.dir;
+    document.body.className = lang==="ar" ? "lang-ar" : "";
+  },[lang]);
+
+  function toggleLang(){
+    const next = lang==="en" ? "ar" : "en";
+    ls.set("clinic_lang",next);
+    setLang(next);
+  }
+
   if(showSetup) return(
-    <div style={{minHeight:"100vh",background:BG,fontFamily:"system-ui,sans-serif"}}>
-      <SetupView onDone={()=>setShowSetup(false)}/>
+    <div style={{minHeight:"100vh",background:BG}}>
+      <div style={{display:"flex",justifyContent:"flex-end",padding:"16px 16px 0"}}>
+        <button onClick={toggleLang} style={{background:"#fff",border:`1px solid ${BD}`,color:T,padding:"6px 14px",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:600}}>
+          <i className="ti ti-language" style={{marginInlineEnd:5}}/>{t.langBtn}
+        </button>
+      </div>
+      <SetupView onDone={()=>setShowSetup(false)} t={t} lang={lang}/>
     </div>
   );
 
-  if(view==="confirm") return <ConfirmView booking={confirmed} onNew={()=>{setStep(1);setExamType(null);setSelDate(null);setSelTime(null);setInfo({name:"",phone:"",email:"",age:"",gender:""});setReceipt(null);setRP(null);setRB(null);setVerif(null);setView("booking");}}/>;
-  if(view==="admin_login") return <AdminLogin onSuccess={()=>setView("admin")} onBack={()=>setView("booking")}/>;
-  if(view==="admin") return <AdminView onLogout={()=>setView("booking")}/>;
+  const examName = id => id==="regular" ? t.exam.regularName : t.exam.sensoName;
+  const cName = ls.get("clinic_name") || (lang==="ar" ? "عيادة طب العيون" : "Ophthalmology Clinic");
+  const exam = examType ? {id:examType, name:examName(examType), price:EXAM_PRICE[examType]} : null;
 
-  const exam=EXAMS.find(e=>e.id===examType);
-  const cName=ls.get("clinic_name")||"Ophthalmology Clinic";
-  const STEPS=["Exam type","Date & time","Your info","Payment","Review"];
+  if(view==="confirm") return <ConfirmView booking={confirmed} clinicName={cName} t={t} lang={lang} onNew={()=>{setStep(1);setExamType(null);setSelDate(null);setSelTime(null);setInfo({name:"",phone:"",email:"",age:"",gender:""});setReceipt(null);setRP(null);setRB(null);setVerif(null);setView("booking");}}/>;
+  if(view==="admin_login") return <AdminLogin onSuccess={()=>setView("admin")} onBack={()=>setView("booking")} t={t} lang={lang} clinicName={cName}/>;
+  if(view==="admin") return <AdminView onLogout={()=>setView("booking")} t={t} lang={lang} clinicName={cName}/>;
 
   async function onVerify(){
     if(!recB64) return;
     setVF(true); setVerif(null);
-    const res=await verifyReceipt(examType,exam.price,recB64,receipt.type);
+    const res=await verifyReceipt(examType,exam.price,recB64,receipt.type,exam.name);
     setVerif(res); setVF(false);
   }
 
@@ -650,7 +826,7 @@ function App(){
       setConf({id:r.id,examType,date:dKey(selDate),time:selTime,patientName:info.name,phone:info.phone});
       setView("confirm");
     } else {
-      alert("Booking failed: "+(r.error||"Unknown error. Please try again."));
+      alert((lang==="ar"?"فشل الحجز: ":"Booking failed: ")+(r.error||"Unknown error. Please try again."));
     }
   }
 
@@ -660,44 +836,49 @@ function App(){
   }
 
   return(
-    <div style={{minHeight:"100vh",background:BG,fontFamily:"system-ui,sans-serif",color:TX}}>
-      <header style={{background:T,color:"#fff"}}>
-        <div style={{maxWidth:760,margin:"0 auto",padding:"0 18px",display:"flex",alignItems:"center",justifyContent:"space-between",height:62}}>
+    <div style={{minHeight:"100vh",background:BG,color:TX}}>
+      <header style={{background:`linear-gradient(135deg, ${T} 0%, ${T2} 100%)`,color:"#fff"}}>
+        <div style={{maxWidth:760,margin:"0 auto",padding:"0 18px",display:"flex",alignItems:"center",justifyContent:"space-between",height:64}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <div style={{width:36,height:36,borderRadius:9,background:"rgba(255,255,255,0.18)",display:"flex",alignItems:"center",justifyContent:"center"}}><i className="ti ti-eye" style={{fontSize:20,color:"#fff"}}/></div>
             <div>
-              <div style={{fontWeight:500,fontSize:16}}>{cName}</div>
-              <div style={{fontSize:10,opacity:0.75}}>Online appointment booking</div>
+              <div style={{fontWeight:600,fontSize:16}}>{cName}</div>
+              <div style={{fontSize:10,opacity:0.8}}>{t.clinicTagline}</div>
             </div>
           </div>
-          <button onClick={()=>setView("admin_login")} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:500}}>
-            Admin <i className="ti ti-external-link" style={{marginLeft:2,fontSize:10}}/>
-          </button>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={toggleLang} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:600}}>
+              {t.langBtn}
+            </button>
+            <button onClick={()=>setView("admin_login")} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:500}}>
+              <i className="ti ti-external-link" style={{fontSize:10,marginInlineEnd:2}}/>{lang==="ar"?"الإدارة":"Admin"}
+            </button>
+          </div>
         </div>
       </header>
 
       <div style={{background:"#fff",borderBottom:`1px solid ${BD}`,padding:"12px 18px"}}>
         <div style={{maxWidth:760,margin:"0 auto",display:"flex",alignItems:"center"}}>
-          {STEPS.map((lbl,i)=>(
-            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:i<STEPS.length-1?1:"auto"}}>
+          {t.steps.map((lbl,i)=>(
+            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:i<t.steps.length-1?1:"auto"}}>
               <div style={{display:"flex",alignItems:"center",width:"100%"}}>
-                <div style={{width:25,height:25,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,background:step>i+1?GR:step===i+1?T:"#E0E8F0",color:step>=i+1?"#fff":MT}}>
+                <div style={{width:25,height:25,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,background:step>i+1?GR:step===i+1?T:"#E0E8F0",color:step>=i+1?"#fff":MT}}>
                   {step>i+1?<i className="ti ti-check" style={{fontSize:12}}/>:i+1}
                 </div>
-                {i<STEPS.length-1&&<div style={{flex:1,height:2,background:step>i+1?GR:"#E0E8F0",margin:"0 3px",marginBottom:14}}/>}
+                {i<t.steps.length-1&&<div style={{flex:1,height:2,background:step>i+1?GR:"#E0E8F0",margin:"0 3px",marginBottom:14}}/>}
               </div>
-              <span style={{fontSize:9,color:step===i+1?T:MT,fontWeight:step===i+1?500:400,marginTop:2,whiteSpace:"nowrap"}}>{lbl}</span>
+              <span style={{fontSize:9,color:step===i+1?T:MT,fontWeight:step===i+1?600:400,marginTop:2,whiteSpace:"nowrap"}}>{lbl}</span>
             </div>
           ))}
         </div>
       </div>
 
       <main style={{maxWidth:760,margin:"0 auto",padding:"20px 16px 50px"}}>
-        {step===1&&<ExamStep exam={examType} setExam={setExamType} onNext={()=>setStep(2)}/>}
-        {step===2&&<DateStep selDate={selDate} setSelDate={d=>{setSelDate(d);setSelTime(null);}} selTime={selTime} setSelTime={setSelTime} onBack={()=>setStep(1)} onNext={()=>setStep(3)}/>}
-        {step===3&&<InfoStep info={info} setInfo={setInfo} onBack={()=>setStep(2)} onNext={()=>setStep(4)}/>}
-        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onBack={()=>setStep(3)} onNext={()=>setStep(5)}/>}
-        {step===5&&<ReviewStep exam={exam} selDate={selDate} selTime={selTime} info={info} verif={verif} submitting={submitting} onBack={()=>setStep(4)} onSubmit={onSubmit}/>}
+        {step===1&&<ExamStep exam={examType} setExam={setExamType} onNext={()=>setStep(2)} t={t} lang={lang}/>}
+        {step===2&&<DateStep selDate={selDate} setSelDate={d=>{setSelDate(d);setSelTime(null);}} selTime={selTime} setSelTime={setSelTime} onBack={()=>setStep(1)} onNext={()=>setStep(3)} t={t} lang={lang}/>}
+        {step===3&&<InfoStep info={info} setInfo={setInfo} onBack={()=>setStep(2)} onNext={()=>setStep(4)} t={t} lang={lang}/>}
+        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
+        {step===5&&<ReviewStep exam={exam} selDate={selDate} selTime={selTime} info={info} verif={verif} submitting={submitting} onBack={()=>setStep(4)} onSubmit={onSubmit} t={t} lang={lang}/>}
       </main>
     </div>
   );
