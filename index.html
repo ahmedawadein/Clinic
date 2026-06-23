@@ -833,7 +833,9 @@ function App(){
   const [vfying,setVF]=useState(false);
   const [submitting,setSub]=useState(false);
   const [confirmed,setConf]=useState(null);
-  const [showSetup,setShowSetup]=useState(!ls.get("clinic_gas_url"));
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbycF9DWxihN7kWD61JYlpu_aMwzmy4afM1r1w3CDLRBtOFZ0JMXBr1XsgRyFAAeziwr/exec";
+  if(!ls.get("clinic_gas_url")) ls.set("clinic_gas_url", BACKEND_URL);
+  const [showSetup,setShowSetup]=useState(false);
 
   useEffect(()=>{
     document.documentElement.lang = lang;
