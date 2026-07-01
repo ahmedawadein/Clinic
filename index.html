@@ -72,7 +72,9 @@ en: {
     apiKey:"Anthropic API key (receipt verification)",apiKeyPh:"sk-ant-...",
     instapayHandle:"Clinic Instapay handle (for recipient check)",instapayHandlePh:"e.g. yourclinic@instapay",
     instapayLink:"Instapay payment link",instapayLinkPh:"https://ipn.eg/S/...",
-    saveBtn:"Save settings",saving:"Saving...",savedOk:"Settings saved ✓",saveFail:"Save failed — check your Apps Script URL"},
+    saveBtn:"Save settings",saving:"Saving...",savedOk:"Settings saved ✓",saveFail:"Save failed — check your Apps Script URL",
+    scheduleTitle:"Clinic schedule",scheduleSub:"Choose which days the clinic is open and the hours for each day. Slots are 10 minutes long.",
+    closed:"Closed",saveScheduleBtn:"Save schedule",scheduleSaved:"Schedule saved ✓",scheduleSaveFail:"Failed to save schedule — check your Apps Script URL"},
   setup:{title:"One-time setup",sub:"This takes about 5 minutes. You'll never need to do it again.",
     step1:"Create backend",step2:"Connect app",
     gasTitle:"Set up Google Sheets backend",
@@ -148,7 +150,9 @@ ar: {
     apiKey:"مفتاح Anthropic API (للتحقق من الإيصالات)",apiKeyPh:"sk-ant-...",
     instapayHandle:"حساب إنستاباي الخاص بالعيادة (للتحقق من المستلم)",instapayHandlePh:"مثال: yourclinic@instapay",
     instapayLink:"رابط الدفع عبر إنستاباي",instapayLinkPh:"https://ipn.eg/S/...",
-    saveBtn:"حفظ الإعدادات",saving:"جاري الحفظ...",savedOk:"تم حفظ الإعدادات ✓",saveFail:"فشل الحفظ — تحقق من رابط Apps Script"},
+    saveBtn:"حفظ الإعدادات",saving:"جاري الحفظ...",savedOk:"تم حفظ الإعدادات ✓",saveFail:"فشل الحفظ — تحقق من رابط Apps Script",
+    scheduleTitle:"مواعيد العيادة",scheduleSub:"اختر الأيام التي تعمل فيها العيادة وساعات العمل لكل يوم. مدة كل موعد 10 دقائق.",
+    closed:"مغلق",saveScheduleBtn:"حفظ المواعيد",scheduleSaved:"تم حفظ المواعيد ✓",scheduleSaveFail:"فشل حفظ المواعيد — تحقق من رابط Apps Script"},
   setup:{title:"إعداد لمرة واحدة",sub:"يستغرق هذا حوالي 5 دقائق. لن تحتاج إلى تكراره مرة أخرى.",
     step1:"إنشاء الخادم",step2:"ربط التطبيق",
     gasTitle:"إعداد خادم Google Sheets",
@@ -180,7 +184,18 @@ ar: {
 };
 
 // ── Schedule & exams ─────────────────────────────────────────
-const SCH = {6:{s:13,e:17},0:{s:15,e:19},3:{s:14,e:19}};
+// Default schedule (used until the backend returns a saved one, or as a fallback if it never has).
+const SCH_DEFAULT = {
+  0:{enabled:true,start:15,end:19},  // Sunday
+  1:{enabled:false,start:9,end:17},  // Monday
+  2:{enabled:false,start:9,end:17},  // Tuesday
+  3:{enabled:true,start:14,end:19},  // Wednesday
+  4:{enabled:false,start:9,end:17},  // Thursday
+  5:{enabled:false,start:9,end:17},  // Friday
+  6:{enabled:true,start:13,end:17},  // Saturday
+};
+const DAY_NAMES_EN = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const DAY_NAMES_AR = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 const EXAM_IDS = ["regular","sensorimotor"];
 const EXAM_PRICE = {regular:500, sensorimotor:700};
 
@@ -242,10 +257,12 @@ async function verifyReceipt(examId, price, b64, mime, examName) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────
-function getSlots(dow) {
-  const s=SCH[dow]; if(!s) return [];
+function getSlots(dow, schedule) {
+  const sch = schedule || SCH_DEFAULT;
+  const s = sch[dow];
+  if(!s || !s.enabled) return [];
   const out=[];
-  for(let h=s.s;h<s.e;h++) for(let m=0;m<60;m+=10) out.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
+  for(let h=s.start;h<s.end;h++) for(let m=0;m<60;m+=10) out.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
   return out;
 }
 function fmtT(t,lang) {
@@ -275,9 +292,11 @@ function monthYear(d,lang){
   const locale = lang==="ar" ? "ar-EG-u-nu-latn" : "en-GB";
   return d.toLocaleDateString(locale,{month:"long",year:"numeric"});
 }
-function upcoming() {
+function upcoming(schedule) {
+  const sch = schedule || SCH_DEFAULT;
+  const enabledDays = Object.keys(sch).filter(d=>sch[d].enabled).map(Number);
   const dates=[],today=new Date();today.setHours(0,0,0,0);
-  for(let i=1;i<=56;i++){const d=new Date(today);d.setDate(today.getDate()+i);if([0,3,6].includes(d.getDay()))dates.push(d);}
+  for(let i=1;i<=56;i++){const d=new Date(today);d.setDate(today.getDate()+i);if(enabledDays.includes(d.getDay()))dates.push(d);}
   return dates;
 }
 function toB64(file) {
@@ -334,13 +353,13 @@ function ExamStep({exam,setExam,onNext,t,lang}){
 }
 
 // ── Step 2: Date & Time ──────────────────────────────────────
-function DateStep({selDate,setSelDate,selTime,setSelTime,onBack,onNext,t,lang}){
+function DateStep({selDate,setSelDate,selTime,setSelTime,onBack,onNext,t,lang,schedule}){
   const [booked,setBooked]=useState([]);
   const [loading,setLoading]=useState(false);
-  const avail=upcoming();
+  const avail=upcoming(schedule);
   const months={};
   avail.forEach(d=>{const k=monthYear(d,lang);if(!months[k])months[k]=[];months[k].push(d);});
-  const allSlots=selDate?getSlots(selDate.getDay()):[];
+  const allSlots=selDate?getSlots(selDate.getDay(),schedule):[];
 
   useEffect(()=>{
     if(!selDate) return;
@@ -590,8 +609,30 @@ function AdminView({onLogout,t,lang,clinicName}){
   });
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
+  const [schedule,setSchedule]=useState(SCH_DEFAULT);
+  const [schedSaving,setSchedSaving]=useState(false);
+  const [schedMsg,setSchedMsg]=useState("");
   const adminPin=ls.get("clinic_admin_pin")||"1234";
   const today=dKey(new Date());
+
+  useEffect(()=>{
+    gasGet({action:"getSchedule"}).then(r=>{ if(r && r.schedule) setSchedule(r.schedule); });
+  },[]);
+
+  async function saveSchedule(){
+    setSchedSaving(true); setSchedMsg("");
+    const r=await gasPost({action:"saveSchedule",pin:adminPin,schedule});
+    setSchedSaving(false);
+    if(r.success){
+      ls.set("clinic_schedule", JSON.stringify(schedule));
+      setSchedMsg(t.admin.scheduleSaved);
+    } else {
+      setSchedMsg(r.error||t.admin.scheduleSaveFail);
+    }
+  }
+  function setDay(d,patch){
+    setSchedule(prev=>({...prev,[d]:{...prev[d],...patch}}));
+  }
 
   useEffect(()=>{
     if(tab!=="appointments") return;
@@ -676,6 +717,7 @@ function AdminView({onLogout,t,lang,clinicName}){
           })}
         </>}
         {tab==="settings"&&(
+          <>
           <div style={bs.card}>
             <h2 style={{fontSize:17,fontWeight:600,color:TX,marginBottom:4}}>{t.admin.settingsTitle}</h2>
             <p style={bs.sub}>{t.admin.settingsSub}</p>
@@ -697,6 +739,35 @@ function AdminView({onLogout,t,lang,clinicName}){
             {msg&&<div style={{padding:"8px 12px",borderRadius:7,marginBottom:12,fontSize:13,background:msg.includes("✓")?GL:RL,color:msg.includes("✓")?GR:RD}}>{msg}</div>}
             <button style={{...bs.btn,opacity:saving?0.6:1}} onClick={saveSettings} disabled={saving}><i className="ti ti-device-floppy" style={{marginInlineEnd:5}}/>{saving?t.admin.saving:t.admin.saveBtn}</button>
           </div>
+          <div style={bs.card}>
+            <h2 style={{fontSize:17,fontWeight:600,color:TX,marginBottom:4}}>{t.admin.scheduleTitle}</h2>
+            <p style={bs.sub}>{t.admin.scheduleSub}</p>
+            {(lang==="ar"?DAY_NAMES_AR:DAY_NAMES_EN).map((dn,d)=>{
+              const day=schedule[d]||{enabled:false,start:9,end:17};
+              return(
+                <div key={d} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:`1px solid ${BD}`,flexWrap:"wrap"}}>
+                  <label style={{display:"flex",alignItems:"center",gap:7,minWidth:130,cursor:"pointer"}}>
+                    <input type="checkbox" checked={!!day.enabled} onChange={e=>setDay(d,{enabled:e.target.checked})}/>
+                    <span style={{fontWeight:500,fontSize:13,color:TX}}>{dn}</span>
+                  </label>
+                  {day.enabled ? (
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <select style={{...bs.inp,width:90,padding:"6px 8px"}} value={day.start} onChange={e=>setDay(d,{start:Number(e.target.value)})}>
+                        {Array.from({length:24},(_,h)=><option key={h} value={h}>{String(h).padStart(2,"0")}:00</option>)}
+                      </select>
+                      <span style={{color:MT,fontSize:12}}>–</span>
+                      <select style={{...bs.inp,width:90,padding:"6px 8px"}} value={day.end} onChange={e=>setDay(d,{end:Number(e.target.value)})}>
+                        {Array.from({length:24},(_,h)=><option key={h} value={h}>{String(h).padStart(2,"0")}:00</option>)}
+                      </select>
+                    </div>
+                  ) : <span style={{color:MT,fontSize:12}}>{t.admin.closed}</span>}
+                </div>
+              );
+            })}
+            {schedMsg&&<div style={{padding:"8px 12px",borderRadius:7,margin:"12px 0",fontSize:13,background:schedMsg.includes("✓")?GL:RL,color:schedMsg.includes("✓")?GR:RD}}>{schedMsg}</div>}
+            <button style={{...bs.btn,opacity:schedSaving?0.6:1,marginTop:12}} onClick={saveSchedule} disabled={schedSaving}><i className="ti ti-device-floppy" style={{marginInlineEnd:5}}/>{schedSaving?t.admin.saving:t.admin.saveScheduleBtn}</button>
+          </div>
+          </>
         )}
       </div>
     </div>
@@ -833,9 +904,23 @@ function App(){
   const [vfying,setVF]=useState(false);
   const [submitting,setSub]=useState(false);
   const [confirmed,setConf]=useState(null);
-  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbycF9DWxihN7kWD61JYlpu_aMwzmy4afM1r1w3CDLRBtOFZ0JMXBr1XsgRyFAAeziwr/exec";
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzrf-ldOWWGyozq5kV66n_zCRYNInZ4oJTuc-9DwPTE1kmxItluth2MZGOrtRrdDBrA0w/exec";
   if(!ls.get("clinic_gas_url")) ls.set("clinic_gas_url", BACKEND_URL);
   const [showSetup,setShowSetup]=useState(false);
+  const [schedule,setSchedule]=useState(()=>{
+    const cached = ls.get("clinic_schedule");
+    if(cached){ try{ return JSON.parse(cached); }catch(e){} }
+    return SCH_DEFAULT;
+  });
+
+  useEffect(()=>{
+    gasGet({action:"getSchedule"}).then(r=>{
+      if(r && r.schedule){
+        setSchedule(r.schedule);
+        ls.set("clinic_schedule", JSON.stringify(r.schedule));
+      }
+    });
+  },[]);
 
   useEffect(()=>{
     document.documentElement.lang = lang;
@@ -942,7 +1027,7 @@ function App(){
 
       <main style={{maxWidth:760,margin:"0 auto",padding:"20px 16px 50px"}}>
         {step===1&&<ExamStep exam={examType} setExam={setExamType} onNext={()=>setStep(2)} t={t} lang={lang}/>}
-        {step===2&&<DateStep selDate={selDate} setSelDate={d=>{setSelDate(d);setSelTime(null);}} selTime={selTime} setSelTime={setSelTime} onBack={()=>setStep(1)} onNext={()=>setStep(3)} t={t} lang={lang}/>}
+        {step===2&&<DateStep selDate={selDate} setSelDate={d=>{setSelDate(d);setSelTime(null);}} selTime={selTime} setSelTime={setSelTime} onBack={()=>setStep(1)} onNext={()=>setStep(3)} t={t} lang={lang} schedule={schedule}/>}
         {step===3&&<InfoStep info={info} setInfo={setInfo} onBack={()=>setStep(2)} onNext={()=>setStep(4)} t={t} lang={lang}/>}
         {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onManualConfirm={onManualConfirm} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
         {step===5&&<ReviewStep exam={exam} selDate={selDate} selTime={selTime} info={info} verif={verif} submitting={submitting} onBack={()=>setStep(4)} onSubmit={onSubmit} t={t} lang={lang}/>}
