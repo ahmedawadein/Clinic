@@ -49,9 +49,7 @@ en: {
     manualConfirmBtn:"I've sent the payment",
     manualPendingTitle:"Receipt uploaded — pending manual review",
     manualPendingReason:"The clinic will verify your payment manually before your appointment.",
-    payNow:"Pay with Instapay",scanQr:"Or scan to pay",afterPaying:"After paying, come back and upload your receipt below.",
-    skipBtn:"Skip payment for now",skipNote:"Temporary — the clinic will confirm your payment separately.",
-    skippedTitle:"Payment skipped",skippedReason:"Payment verification was skipped temporarily. The clinic will confirm your payment before your visit."},
+    payNow:"Pay with Instapay",scanQr:"Or scan to pay",afterPaying:"After paying, come back and upload your receipt below."},
   review:{title:"Confirm your booking",sub:"Please review all details before submitting.",
     examination:"Examination",fee:"Fee",date:"Date",time:"Time",patientName:"Patient name",phone:"Phone number",
     email:"Email",ageGender:"Age / gender",payment:"Payment",paymentVerified:"Instapay — verified ✓",
@@ -59,7 +57,19 @@ en: {
     back:"Back",confirmBtn:"Confirm appointment",confirming:"Confirming..."},
   confirm:{title:"Appointment confirmed!",sub:"Your booking is received. Please be on time.",
     bookingId:"Booking ID",exam:"Exam",date:"Date",time:"Time",name:"Name",phone:"Phone",
-    notified:"has been notified. Please arrive 5 minutes early.",newBooking:"Book another appointment"},
+    notified:"has been notified. Please arrive 5 minutes early.",newBooking:"Book another appointment",
+    manageLink:"Need to cancel or check this booking?"},
+  manage:{navLink:"Manage booking",title:"Manage your booking",sub:"Enter your booking ID and the phone number you booked with.",
+    bookingId:"Booking ID",bookingIdPh:"e.g. 1042",phone:"Phone number",phonePh:"01xxxxxxxxx",
+    lookupBtn:"Find my booking",looking:"Looking up...",notFound:"No booking found with that ID and phone number. Please check and try again.",
+    exam:"Exam",date:"Date",time:"Time",name:"Name",status:"Status",
+    alreadyCancelled:"This appointment is already cancelled.",
+    pastNotice:"This appointment date has already passed.",
+    cancelBtn:"Cancel this appointment",cancelling:"Cancelling...",
+    cancelConfirm:"Are you sure you want to cancel this appointment? This can't be undone.",
+    cancelledTitle:"Appointment cancelled",cancelledSub:"Your slot has been freed up. You're welcome to book a new appointment any time.",
+    cancelFail:"Could not cancel — please try again or contact the clinic.",
+    bookNew:"Book a new appointment",back:"Back",tryAgain:"Look up another booking"},
   adminLogin:{title:"Admin access",pinPh:"PIN",wrongPin:"Incorrect PIN",enterBtn:"Enter",backBtn:"Back"},
   admin:{panelTitle:"Admin panel",exitAdmin:"Exit admin",total:"Total",today:"Today",upcoming:"Upcoming",
     appointmentsTab:"Appointments",settingsTab:"Settings",searchPh:"Search by name, date (YYYY-MM-DD), phone, or ID...",
@@ -76,9 +86,7 @@ en: {
     instapayLink:"Instapay payment link",instapayLinkPh:"https://ipn.eg/S/...",
     saveBtn:"Save settings",saving:"Saving...",savedOk:"Settings saved ✓",saveFail:"Save failed — check your Apps Script URL",
     scheduleTitle:"Clinic schedule",scheduleSub:"Choose which days the clinic is open and the hours for each day. Slots are 10 minutes long.",
-    closed:"Closed",saveScheduleBtn:"Save schedule",scheduleSaved:"Schedule saved ✓",scheduleSaveFail:"Failed to save schedule — check your Apps Script URL",
-    skipToggleLabel:"Allow patients to skip payment (temporary)",
-    skipToggleSub:"Shows a \"Skip payment for now\" button on the payment step so patients can book without a receipt yet."},
+    closed:"Closed",saveScheduleBtn:"Save schedule",scheduleSaved:"Schedule saved ✓",scheduleSaveFail:"Failed to save schedule — check your Apps Script URL"},
   setup:{title:"One-time setup",sub:"This takes about 5 minutes. You'll never need to do it again.",
     step1:"Create backend",step2:"Connect app",
     gasTitle:"Set up Google Sheets backend",
@@ -131,9 +139,7 @@ ar: {
     manualConfirmBtn:"لقد قمت بإرسال المبلغ",
     manualPendingTitle:"تم رفع الإيصال — بانتظار المراجعة اليدوية",
     manualPendingReason:"ستقوم العيادة بالتحقق من دفعتك يدوياً قبل موعدك.",
-    payNow:"ادفع عبر إنستاباي",scanQr:"أو امسح للدفع",afterPaying:"بعد الدفع، عد وارفع إيصالك بالأسفل.",
-    skipBtn:"تخطي الدفع مؤقتاً",skipNote:"مؤقت — ستقوم العيادة بتأكيد دفعتك بشكل منفصل.",
-    skippedTitle:"تم تخطي الدفع",skippedReason:"تم تخطي التحقق من الدفع مؤقتاً. ستقوم العيادة بتأكيد دفعتك قبل موعدك."},
+    payNow:"ادفع عبر إنستاباي",scanQr:"أو امسح للدفع",afterPaying:"بعد الدفع، عد وارفع إيصالك بالأسفل."},
   review:{title:"تأكيد الحجز",sub:"يرجى مراجعة جميع البيانات قبل الإرسال.",
     examination:"نوع الكشف",fee:"الرسوم",date:"التاريخ",time:"الوقت",patientName:"اسم المريض",phone:"رقم الهاتف",
     email:"البريد الإلكتروني",ageGender:"السن / النوع",payment:"الدفع",paymentVerified:"إنستاباي — تم التحقق ✓",
@@ -141,7 +147,19 @@ ar: {
     back:"رجوع",confirmBtn:"تأكيد الموعد",confirming:"جاري التأكيد..."},
   confirm:{title:"تم تأكيد الموعد!",sub:"تم استلام حجزك. يرجى الحضور في الموعد.",
     bookingId:"رقم الحجز",exam:"الكشف",date:"التاريخ",time:"الوقت",name:"الاسم",phone:"الهاتف",
-    notified:"تم إخطار العيادة. يرجى الحضور قبل الموعد بـ 5 دقائق.",newBooking:"حجز موعد آخر"},
+    notified:"تم إخطار العيادة. يرجى الحضور قبل الموعد بـ 5 دقائق.",newBooking:"حجز موعد آخر",
+    manageLink:"تريد إلغاء الموعد أو الاستفسار عنه؟"},
+  manage:{navLink:"إدارة الحجز",title:"إدارة حجزك",sub:"أدخل رقم الحجز ورقم الهاتف الذي استخدمته عند الحجز.",
+    bookingId:"رقم الحجز",bookingIdPh:"مثال: 1042",phone:"رقم الهاتف",phonePh:"01xxxxxxxxx",
+    lookupBtn:"البحث عن حجزي",looking:"جاري البحث...",notFound:"لم يتم العثور على حجز بهذا الرقم وهذا الهاتف. يرجى التحقق والمحاولة مرة أخرى.",
+    exam:"الكشف",date:"التاريخ",time:"الوقت",name:"الاسم",status:"الحالة",
+    alreadyCancelled:"تم إلغاء هذا الموعد بالفعل.",
+    pastNotice:"لقد مر موعد هذا الحجز بالفعل.",
+    cancelBtn:"إلغاء هذا الموعد",cancelling:"جاري الإلغاء...",
+    cancelConfirm:"هل أنت متأكد من إلغاء هذا الموعد؟ لا يمكن التراجع عن هذا الإجراء.",
+    cancelledTitle:"تم إلغاء الموعد",cancelledSub:"تم إلغاء حجزك. يمكنك حجز موعد جديد في أي وقت.",
+    cancelFail:"تعذر الإلغاء — يرجى المحاولة مرة أخرى أو التواصل مع العيادة.",
+    bookNew:"حجز موعد جديد",back:"رجوع",tryAgain:"البحث عن حجز آخر"},
   adminLogin:{title:"دخول الإدارة",pinPh:"الرقم السري",wrongPin:"رقم سري خاطئ",enterBtn:"دخول",backBtn:"رجوع"},
   admin:{panelTitle:"لوحة الإدارة",exitAdmin:"خروج",total:"الإجمالي",today:"اليوم",upcoming:"القادمة",
     appointmentsTab:"المواعيد",settingsTab:"الإعدادات",searchPh:"بحث بالاسم، التاريخ، الهاتف، أو رقم الحجز...",
@@ -158,9 +176,7 @@ ar: {
     instapayLink:"رابط الدفع عبر إنستاباي",instapayLinkPh:"https://ipn.eg/S/...",
     saveBtn:"حفظ الإعدادات",saving:"جاري الحفظ...",savedOk:"تم حفظ الإعدادات ✓",saveFail:"فشل الحفظ — تحقق من رابط Apps Script",
     scheduleTitle:"مواعيد العيادة",scheduleSub:"اختر الأيام التي تعمل فيها العيادة وساعات العمل لكل يوم. مدة كل موعد 10 دقائق.",
-    closed:"مغلق",saveScheduleBtn:"حفظ المواعيد",scheduleSaved:"تم حفظ المواعيد ✓",scheduleSaveFail:"فشل حفظ المواعيد — تحقق من رابط Apps Script",
-    skipToggleLabel:"السماح للمرضى بتخطي الدفع (مؤقت)",
-    skipToggleSub:"يعرض زر \"تخطي الدفع مؤقتاً\" في خطوة الدفع حتى يتمكن المرضى من الحجز بدون إيصال حالياً."},
+    closed:"مغلق",saveScheduleBtn:"حفظ المواعيد",scheduleSaved:"تم حفظ المواعيد ✓",scheduleSaveFail:"فشل حفظ المواعيد — تحقق من رابط Apps Script"},
   setup:{title:"إعداد لمرة واحدة",sub:"يستغرق هذا حوالي 5 دقائق. لن تحتاج إلى تكراره مرة أخرى.",
     step1:"إنشاء الخادم",step2:"ربط التطبيق",
     gasTitle:"إعداد خادم Google Sheets",
@@ -454,7 +470,7 @@ function InfoStep({info,setInfo,onBack,onNext,t,lang}){
 }
 
 // ── Step 4: Payment ──────────────────────────────────────────
-function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManualConfirm,onSkip,skipPaymentEnabled,onBack,onNext,t,lang}){
+function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManualConfirm,onBack,onNext,t,lang}){
   const ref=useRef();
   const hasKey = !!ls.get("clinic_api_key");
   const payLink = ls.get("clinic_instapay_link");
@@ -503,20 +519,12 @@ function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManual
       </div>
       {receipt&&!vfying&&!verif&&hasKey&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onVerify}><i className="ti ti-scan" style={{marginInlineEnd:6}}/>{t.payment.verifyBtn}</button>}
       {receipt&&!verif&&!hasKey&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onManualConfirm}><i className="ti ti-check" style={{marginInlineEnd:6}}/>{t.payment.manualConfirmBtn}</button>}
-      {skipPaymentEnabled&&!verif&&!vfying&&(
-        <div style={{marginTop:10,textAlign:"center"}}>
-          <button style={{...bs.ghost,width:"100%",borderStyle:"dashed"}} onClick={onSkip}>
-            <i className="ti ti-player-skip-forward" style={{marginInlineEnd:6}}/>{t.payment.skipBtn}
-          </button>
-          <div style={{fontSize:11,color:MT,marginTop:5}}>{t.payment.skipNote}</div>
-        </div>
-      )}
       {vfying&&<div style={{textAlign:"center",padding:"12px 0",color:MT,fontSize:13}}><i className="ti ti-loader" style={{marginInlineEnd:5}}/>{t.payment.analyzing}</div>}
       {verif&&(
-        <div style={{marginTop:12,padding:"13px 14px",borderRadius:10,background:verif.skipped?AL:verif.manual?AL:verif.verified?GL:RL,border:`1px solid ${verif.skipped?"#E4C988":verif.manual?"#E4C988":verif.verified?"#A9DFC0":"#F5B7B1"}`,display:"flex",gap:10,alignItems:"flex-start"}}>
-          <i className={`ti ti-${verif.skipped?"player-skip-forward":verif.manual?"clock":verif.verified?"circle-check":"circle-x"}`} style={{fontSize:20,color:verif.skipped?AM:verif.manual?AM:verif.verified?GR:RD,flexShrink:0,marginTop:1}}/>
+        <div style={{marginTop:12,padding:"13px 14px",borderRadius:10,background:verif.manual?AL:verif.verified?GL:RL,border:`1px solid ${verif.manual?"#E4C988":verif.verified?"#A9DFC0":"#F5B7B1"}`,display:"flex",gap:10,alignItems:"flex-start"}}>
+          <i className={`ti ti-${verif.manual?"clock":verif.verified?"circle-check":"circle-x"}`} style={{fontSize:20,color:verif.manual?AM:verif.verified?GR:RD,flexShrink:0,marginTop:1}}/>
           <div>
-            <div style={{fontWeight:600,color:verif.skipped?AM:verif.manual?AM:verif.verified?GR:RD,fontSize:13}}>{verif.skipped?t.payment.skippedTitle:verif.manual?t.payment.manualPendingTitle:verif.verified?t.payment.verifiedTitle:t.payment.failedTitle}</div>
+            <div style={{fontWeight:600,color:verif.manual?AM:verif.verified?GR:RD,fontSize:13}}>{verif.manual?t.payment.manualPendingTitle:verif.verified?t.payment.verifiedTitle:t.payment.failedTitle}</div>
             <div style={{fontSize:12,color:TX,marginTop:2}}>{verif.reason}</div>
             {verif.transactionRef&&<div style={{fontSize:11,color:MT,marginTop:2}}>{t.payment.ref}: {verif.transactionRef}</div>}
             {verif.amount&&<div style={{fontSize:11,color:MT}}>{t.payment.amountDetected}: {verif.amount} EGP</div>}
@@ -540,7 +548,7 @@ function ReviewStep({exam,selDate,selTime,info,verif,submitting,onBack,onSubmit,
     [t.review.patientName,info.name],[t.review.phone,info.phone],
     info.email&&[t.review.email,info.email],
     [t.review.ageGender,`${info.age} ${lang==="ar"?"سنة":"yrs"} / ${info.gender}`],
-    [t.review.payment,verif?.skipped?t.payment.skippedTitle:verif?.manual?t.payment.manualPendingTitle:t.review.paymentVerified],
+    [t.review.payment,verif?.manual?t.payment.manualPendingTitle:t.review.paymentVerified],
     verif?.transactionRef&&[t.review.transactionRef,verif.transactionRef],
   ].filter(Boolean);
   return(
@@ -576,6 +584,103 @@ function ConfirmView({booking,onNew,t,lang,clinicName}){
         </div>
         <p style={{fontSize:12,color:MT,marginBottom:18}}>{clinicName} {t.confirm.notified}</p>
         <button style={bs.btn} onClick={onNew}>{t.confirm.newBooking}</button>
+        <div style={{marginTop:14}}>
+          <button onClick={onManage} style={{background:"none",border:"none",color:T,fontSize:12,cursor:"pointer",textDecoration:"underline"}}>{t.confirm.manageLink}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Manage / cancel a booking (patient-facing) ────────────────
+function ManageBookingView({onBack,onBookNew,t,lang}){
+  const [id,setId]=useState("");
+  const [phone,setPhone]=useState("");
+  const [looking,setLooking]=useState(false);
+  const [err,setErr]=useState("");
+  const [booking,setBooking]=useState(null);
+  const [cancelling,setCancelling]=useState(false);
+  const [cancelErr,setCancelErr]=useState("");
+  const [cancelled,setCancelled]=useState(false);
+
+  async function lookup(){
+    if(!id.trim()||!phone.trim()) return;
+    setLooking(true); setErr(""); setBooking(null); setCancelled(false); setCancelErr("");
+    const r=await gasGet({action:"getBooking",id:id.trim(),phone:phone.trim()});
+    setLooking(false);
+    if(r.booking) setBooking(r.booking); else setErr(r.error||t.manage.notFound);
+  }
+
+  async function doCancel(){
+    if(!window.confirm(t.manage.cancelConfirm)) return;
+    setCancelling(true); setCancelErr("");
+    const r=await gasPost({action:"patientCancel",id:booking.id,phone:phone.trim()});
+    setCancelling(false);
+    if(r.success){ setCancelled(true); setBooking(b=>({...b,status:"cancelled"})); }
+    else setCancelErr(r.error||t.manage.cancelFail);
+  }
+
+  const examName = id => id==="regular" ? t.exam.regularName : id==="sensorimotor" ? t.exam.sensoName : id;
+  const today=dKey(new Date());
+  const isPast = booking && booking.date < today;
+  const isCancelled = booking && booking.status==="cancelled";
+
+  return(
+    <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:BG,padding:20}}>
+      <div style={{...bs.card,maxWidth:460,width:"100%",marginBottom:0}}>
+        <h1 style={bs.h1}>{t.manage.title}</h1>
+        <p style={bs.sub}>{t.manage.sub}</p>
+
+        {!booking && !cancelled && <>
+          <div style={{marginBottom:12}}>
+            <label style={bs.lbl}>{t.manage.bookingId}</label>
+            <input style={bs.inp} placeholder={t.manage.bookingIdPh} value={id} onChange={e=>setId(e.target.value)}/>
+          </div>
+          <div style={{marginBottom:16}}>
+            <label style={bs.lbl}>{t.manage.phone}</label>
+            <input style={bs.inp} placeholder={t.manage.phonePh} value={phone} onChange={e=>setPhone(e.target.value)}/>
+          </div>
+          {err&&<div style={{background:RL,borderRadius:7,padding:"10px 13px",marginBottom:14,fontSize:12,color:RD}}>{err}</div>}
+          <button style={{...bs.btn,width:"100%",opacity:(id.trim()&&phone.trim())?1:0.4}} onClick={lookup} disabled={looking||!id.trim()||!phone.trim()}>
+            {looking?t.manage.looking:t.manage.lookupBtn}
+          </button>
+        </>}
+
+        {booking && !cancelled && <>
+          <div style={{background:BG,borderRadius:11,padding:"14px 16px",marginBottom:16}}>
+            {[[t.manage.exam,examName(booking.examtype)||booking.examname],
+              [t.manage.date,fmtD(booking.date,lang)],
+              [t.manage.time,fmtT(booking.time,lang)],
+              [t.manage.name,booking.name],
+              [t.manage.status,isCancelled?t.admin.cancelled:isPast?t.admin.past:t.admin.confirmed]].map(([k,v],i,a)=>(
+              <div key={k} style={{...bs.sRow,borderBottom:i<a.length-1?`1px solid ${BD}`:"none"}}><span style={{color:MT}}>{k}</span><span style={{fontWeight:600}}>{v}</span></div>
+            ))}
+          </div>
+          {isCancelled && <div style={{background:RL,borderRadius:7,padding:"10px 13px",marginBottom:14,fontSize:12,color:RD}}>{t.manage.alreadyCancelled}</div>}
+          {!isCancelled && isPast && <div style={{background:AL,borderRadius:7,padding:"10px 13px",marginBottom:14,fontSize:12,color:AM}}>{t.manage.pastNotice}</div>}
+          {cancelErr&&<div style={{background:RL,borderRadius:7,padding:"10px 13px",marginBottom:14,fontSize:12,color:RD}}>{cancelErr}</div>}
+          {!isCancelled && !isPast && (
+            <button style={{...bs.ghost,width:"100%",color:RD,borderColor:"#F5B7B1",opacity:cancelling?0.6:1}} onClick={doCancel} disabled={cancelling}>
+              {cancelling?t.manage.cancelling:t.manage.cancelBtn}
+            </button>
+          )}
+          <button style={{background:"none",border:"none",color:T,fontSize:12,cursor:"pointer",textDecoration:"underline",marginTop:14,display:"block"}} onClick={()=>{setBooking(null);setId("");setPhone("");}}>{t.manage.tryAgain}</button>
+        </>}
+
+        {cancelled && <>
+          <div style={{textAlign:"center",padding:"10px 0 4px"}}>
+            <div style={{width:52,height:52,borderRadius:"50%",background:GL,border:`2px solid #A9DFC0`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
+              <i className="ti ti-check" style={{fontSize:24,color:GR}}/>
+            </div>
+            <div style={{fontWeight:600,fontSize:15,color:TX,marginBottom:4}}>{t.manage.cancelledTitle}</div>
+            <p style={{color:MT,fontSize:13,marginBottom:16}}>{t.manage.cancelledSub}</p>
+            <button style={{...bs.btn,width:"100%"}} onClick={onBookNew}>{t.manage.bookNew}</button>
+          </div>
+        </>}
+
+        <div style={{marginTop:16,textAlign:"center"}}>
+          <button style={{background:"none",border:"none",color:MT,fontSize:12,cursor:"pointer"}} onClick={onBack}><BackIcon lang={lang}/>{t.manage.back}</button>
+        </div>
       </div>
     </div>
   );
@@ -622,7 +727,6 @@ function AdminView({onLogout,t,lang,clinicName}){
     instapayLink:ls.get("clinic_instapay_link")||"",
     gasUrl:ls.get("clinic_gas_url")||"",
     adminPin:ls.get("clinic_admin_pin")||"1234",
-    skipPaymentEnabled:false,
   });
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
@@ -634,7 +738,6 @@ function AdminView({onLogout,t,lang,clinicName}){
 
   useEffect(()=>{
     gasGet({action:"getSchedule"}).then(r=>{ if(r && r.schedule) setSchedule(r.schedule); });
-    gasGet({action:"getPublicSettings"}).then(r=>{ if(r && typeof r.skipPaymentEnabled!=="undefined") setSett(p=>({...p,skipPaymentEnabled:!!r.skipPaymentEnabled})); });
   },[]);
 
   async function saveSchedule(){
@@ -670,7 +773,7 @@ function AdminView({onLogout,t,lang,clinicName}){
     ls.set("clinic_instapay_link",sett.instapayLink);
     ls.set("clinic_gas_url",sett.gasUrl);
     ls.set("clinic_admin_pin",sett.adminPin);
-    const r=await gasPost({action:"saveSettings",currentPin:adminPin,clinicName:sett.clinicName,doctorEmail:sett.doctorEmail,secretaryEmail:sett.secretaryEmail,adminPin:sett.adminPin,skipPaymentEnabled:sett.skipPaymentEnabled});
+    const r=await gasPost({action:"saveSettings",currentPin:adminPin,clinicName:sett.clinicName,doctorEmail:sett.doctorEmail,secretaryEmail:sett.secretaryEmail,adminPin:sett.adminPin});
     setSaving(false);
     setMsg(r.success?t.admin.savedOk:(r.error||t.admin.saveFail));
   }
@@ -754,13 +857,6 @@ function AdminView({onLogout,t,lang,clinicName}){
                 <input type={ty} placeholder={ph} value={sett[k]||""} onChange={e=>setSett(p=>({...p,[k]:e.target.value}))} style={bs.inp}/>
               </div>
             ))}
-            <div style={{display:"flex",alignItems:"flex-start",gap:9,marginBottom:14,padding:"10px 13px",background:BG,borderRadius:8,border:`1px solid ${BD}`}}>
-              <input type="checkbox" checked={!!sett.skipPaymentEnabled} onChange={e=>setSett(p=>({...p,skipPaymentEnabled:e.target.checked}))} style={{marginTop:2}}/>
-              <div>
-                <div style={{fontWeight:500,fontSize:13,color:TX}}>{t.admin.skipToggleLabel}</div>
-                <div style={{fontSize:11,color:MT,marginTop:2}}>{t.admin.skipToggleSub}</div>
-              </div>
-            </div>
             {msg&&<div style={{padding:"8px 12px",borderRadius:7,marginBottom:12,fontSize:13,background:msg.includes("✓")?GL:RL,color:msg.includes("✓")?GR:RD}}>{msg}</div>}
             <button style={{...bs.btn,opacity:saving?0.6:1}} onClick={saveSettings} disabled={saving}><i className="ti ti-device-floppy" style={{marginInlineEnd:5}}/>{saving?t.admin.saving:t.admin.saveBtn}</button>
           </div>
@@ -929,21 +1025,14 @@ function App(){
   const [vfying,setVF]=useState(false);
   const [submitting,setSub]=useState(false);
   const [confirmed,setConf]=useState(null);
-  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyCu5UhDqo6oy9V5fDGQV7S0Is8Dds-c9xOZ7SQCiqGsrjV1dNBoAHiqVmkmUMbRLmCFA/exec";
-  ls.set("clinic_gas_url", BACKEND_URL);
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzrf-ldOWWGyozq5kV66n_zCRYNInZ4oJTuc-9DwPTE1kmxItluth2MZGOrtRrdDBrA0w/exec";
+  if(!ls.get("clinic_gas_url")) ls.set("clinic_gas_url", BACKEND_URL);
   const [showSetup,setShowSetup]=useState(false);
-  const [skipPaymentEnabled,setSkipPaymentEnabled]=useState(false);
   const [schedule,setSchedule]=useState(()=>{
     const cached = ls.get("clinic_schedule");
     if(cached){ try{ return JSON.parse(cached); }catch(e){} }
     return SCH_DEFAULT;
   });
-
-  useEffect(()=>{
-    gasGet({action:"getPublicSettings"}).then(r=>{
-      if(r && typeof r.skipPaymentEnabled!=="undefined") setSkipPaymentEnabled(!!r.skipPaymentEnabled);
-    });
-  },[]);
 
   useEffect(()=>{
     gasGet({action:"getSchedule"}).then(r=>{
@@ -981,7 +1070,8 @@ function App(){
   const cName = ls.get("clinic_name") || (lang==="ar" ? "عيادة طب العيون" : "Ophthalmology Clinic");
   const exam = examType ? {id:examType, name:examName(examType), price:EXAM_PRICE[examType]} : null;
 
-  if(view==="confirm") return <ConfirmView booking={confirmed} clinicName={cName} t={t} lang={lang} onNew={()=>{setStep(1);setExamType(null);setSelDate(null);setSelTime(null);setInfo({name:"",phone:"",email:"",age:"",gender:""});setReceipt(null);setRP(null);setRB(null);setVerif(null);setView("booking");}}/>;
+  if(view==="confirm") return <ConfirmView booking={confirmed} clinicName={cName} t={t} lang={lang} onNew={()=>{setStep(1);setExamType(null);setSelDate(null);setSelTime(null);setInfo({name:"",phone:"",email:"",age:"",gender:""});setReceipt(null);setRP(null);setRB(null);setVerif(null);setView("booking");}} onManage={()=>setView("manage")}/>;
+  if(view==="manage") return <ManageBookingView t={t} lang={lang} onBack={()=>setView("booking")} onBookNew={()=>{setStep(1);setExamType(null);setSelDate(null);setSelTime(null);setInfo({name:"",phone:"",email:"",age:"",gender:""});setReceipt(null);setRP(null);setRB(null);setVerif(null);setView("booking");}}/>;
   if(view==="admin_login") return <AdminLogin onSuccess={()=>setView("admin")} onBack={()=>setView("booking")} t={t} lang={lang} clinicName={cName}/>;
   if(view==="admin") return <AdminView onLogout={()=>setView("booking")} t={t} lang={lang} clinicName={cName}/>;
 
@@ -994,10 +1084,6 @@ function App(){
 
   function onManualConfirm(){
     setVerif({verified:true, manual:true, reason:t.payment.manualPendingReason});
-  }
-
-  function onSkipPayment(){
-    setVerif({verified:true, skipped:true, reason:t.payment.skippedReason});
   }
 
   async function onSubmit(){
@@ -1038,6 +1124,9 @@ function App(){
             <button onClick={toggleLang} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:600}}>
               {t.langBtn}
             </button>
+            <button onClick={()=>setView("manage")} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:500}}>
+              <i className="ti ti-calendar-search" style={{fontSize:10,marginInlineEnd:2}}/>{t.manage.navLink}
+            </button>
             <button onClick={()=>setView("admin_login")} style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"5px 13px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:500}}>
               <i className="ti ti-external-link" style={{fontSize:10,marginInlineEnd:2}}/>{lang==="ar"?"الإدارة":"Admin"}
             </button>
@@ -1065,7 +1154,7 @@ function App(){
         {step===1&&<ExamStep exam={examType} setExam={setExamType} onNext={()=>setStep(2)} t={t} lang={lang}/>}
         {step===2&&<DateStep selDate={selDate} setSelDate={d=>{setSelDate(d);setSelTime(null);}} selTime={selTime} setSelTime={setSelTime} onBack={()=>setStep(1)} onNext={()=>setStep(3)} t={t} lang={lang} schedule={schedule}/>}
         {step===3&&<InfoStep info={info} setInfo={setInfo} onBack={()=>setStep(2)} onNext={()=>setStep(4)} t={t} lang={lang}/>}
-        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onManualConfirm={onManualConfirm} onSkip={onSkipPayment} skipPaymentEnabled={skipPaymentEnabled} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
+        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onManualConfirm={onManualConfirm} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
         {step===5&&<ReviewStep exam={exam} selDate={selDate} selTime={selTime} info={info} verif={verif} submitting={submitting} onBack={()=>setStep(4)} onSubmit={onSubmit} t={t} lang={lang}/>}
       </main>
     </div>
