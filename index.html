@@ -49,7 +49,9 @@ en: {
     manualConfirmBtn:"I've sent the payment",
     manualPendingTitle:"Receipt uploaded — pending manual review",
     manualPendingReason:"The clinic will verify your payment manually before your appointment.",
-    payNow:"Pay with Instapay",scanQr:"Or scan to pay",afterPaying:"After paying, come back and upload your receipt below."},
+    payNow:"Pay with Instapay",scanQr:"Or scan to pay",afterPaying:"After paying, come back and upload your receipt below.",
+    skipBtn:"Skip payment for now",skipNote:"Temporary — the clinic will confirm your payment separately.",
+    skippedTitle:"Payment skipped",skippedReason:"Payment verification was skipped temporarily. The clinic will confirm your payment before your visit."},
   review:{title:"Confirm your booking",sub:"Please review all details before submitting.",
     examination:"Examination",fee:"Fee",date:"Date",time:"Time",patientName:"Patient name",phone:"Phone number",
     email:"Email",ageGender:"Age / gender",payment:"Payment",paymentVerified:"Instapay — verified ✓",
@@ -74,7 +76,9 @@ en: {
     instapayLink:"Instapay payment link",instapayLinkPh:"https://ipn.eg/S/...",
     saveBtn:"Save settings",saving:"Saving...",savedOk:"Settings saved ✓",saveFail:"Save failed — check your Apps Script URL",
     scheduleTitle:"Clinic schedule",scheduleSub:"Choose which days the clinic is open and the hours for each day. Slots are 10 minutes long.",
-    closed:"Closed",saveScheduleBtn:"Save schedule",scheduleSaved:"Schedule saved ✓",scheduleSaveFail:"Failed to save schedule — check your Apps Script URL"},
+    closed:"Closed",saveScheduleBtn:"Save schedule",scheduleSaved:"Schedule saved ✓",scheduleSaveFail:"Failed to save schedule — check your Apps Script URL",
+    skipToggleLabel:"Allow patients to skip payment (temporary)",
+    skipToggleSub:"Shows a \"Skip payment for now\" button on the payment step so patients can book without a receipt yet."},
   setup:{title:"One-time setup",sub:"This takes about 5 minutes. You'll never need to do it again.",
     step1:"Create backend",step2:"Connect app",
     gasTitle:"Set up Google Sheets backend",
@@ -127,7 +131,9 @@ ar: {
     manualConfirmBtn:"لقد قمت بإرسال المبلغ",
     manualPendingTitle:"تم رفع الإيصال — بانتظار المراجعة اليدوية",
     manualPendingReason:"ستقوم العيادة بالتحقق من دفعتك يدوياً قبل موعدك.",
-    payNow:"ادفع عبر إنستاباي",scanQr:"أو امسح للدفع",afterPaying:"بعد الدفع، عد وارفع إيصالك بالأسفل."},
+    payNow:"ادفع عبر إنستاباي",scanQr:"أو امسح للدفع",afterPaying:"بعد الدفع، عد وارفع إيصالك بالأسفل.",
+    skipBtn:"تخطي الدفع مؤقتاً",skipNote:"مؤقت — ستقوم العيادة بتأكيد دفعتك بشكل منفصل.",
+    skippedTitle:"تم تخطي الدفع",skippedReason:"تم تخطي التحقق من الدفع مؤقتاً. ستقوم العيادة بتأكيد دفعتك قبل موعدك."},
   review:{title:"تأكيد الحجز",sub:"يرجى مراجعة جميع البيانات قبل الإرسال.",
     examination:"نوع الكشف",fee:"الرسوم",date:"التاريخ",time:"الوقت",patientName:"اسم المريض",phone:"رقم الهاتف",
     email:"البريد الإلكتروني",ageGender:"السن / النوع",payment:"الدفع",paymentVerified:"إنستاباي — تم التحقق ✓",
@@ -152,7 +158,9 @@ ar: {
     instapayLink:"رابط الدفع عبر إنستاباي",instapayLinkPh:"https://ipn.eg/S/...",
     saveBtn:"حفظ الإعدادات",saving:"جاري الحفظ...",savedOk:"تم حفظ الإعدادات ✓",saveFail:"فشل الحفظ — تحقق من رابط Apps Script",
     scheduleTitle:"مواعيد العيادة",scheduleSub:"اختر الأيام التي تعمل فيها العيادة وساعات العمل لكل يوم. مدة كل موعد 10 دقائق.",
-    closed:"مغلق",saveScheduleBtn:"حفظ المواعيد",scheduleSaved:"تم حفظ المواعيد ✓",scheduleSaveFail:"فشل حفظ المواعيد — تحقق من رابط Apps Script"},
+    closed:"مغلق",saveScheduleBtn:"حفظ المواعيد",scheduleSaved:"تم حفظ المواعيد ✓",scheduleSaveFail:"فشل حفظ المواعيد — تحقق من رابط Apps Script",
+    skipToggleLabel:"السماح للمرضى بتخطي الدفع (مؤقت)",
+    skipToggleSub:"يعرض زر \"تخطي الدفع مؤقتاً\" في خطوة الدفع حتى يتمكن المرضى من الحجز بدون إيصال حالياً."},
   setup:{title:"إعداد لمرة واحدة",sub:"يستغرق هذا حوالي 5 دقائق. لن تحتاج إلى تكراره مرة أخرى.",
     step1:"إنشاء الخادم",step2:"ربط التطبيق",
     gasTitle:"إعداد خادم Google Sheets",
@@ -446,7 +454,7 @@ function InfoStep({info,setInfo,onBack,onNext,t,lang}){
 }
 
 // ── Step 4: Payment ──────────────────────────────────────────
-function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManualConfirm,onBack,onNext,t,lang}){
+function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManualConfirm,onSkip,skipPaymentEnabled,onBack,onNext,t,lang}){
   const ref=useRef();
   const hasKey = !!ls.get("clinic_api_key");
   const payLink = ls.get("clinic_instapay_link");
@@ -495,12 +503,20 @@ function PaymentStep({exam,receipt,recPrev,verif,vfying,onFile,onVerify,onManual
       </div>
       {receipt&&!vfying&&!verif&&hasKey&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onVerify}><i className="ti ti-scan" style={{marginInlineEnd:6}}/>{t.payment.verifyBtn}</button>}
       {receipt&&!verif&&!hasKey&&<button style={{...bs.btn,width:"100%",marginTop:10}} onClick={onManualConfirm}><i className="ti ti-check" style={{marginInlineEnd:6}}/>{t.payment.manualConfirmBtn}</button>}
+      {skipPaymentEnabled&&!verif&&!vfying&&(
+        <div style={{marginTop:10,textAlign:"center"}}>
+          <button style={{...bs.ghost,width:"100%",borderStyle:"dashed"}} onClick={onSkip}>
+            <i className="ti ti-player-skip-forward" style={{marginInlineEnd:6}}/>{t.payment.skipBtn}
+          </button>
+          <div style={{fontSize:11,color:MT,marginTop:5}}>{t.payment.skipNote}</div>
+        </div>
+      )}
       {vfying&&<div style={{textAlign:"center",padding:"12px 0",color:MT,fontSize:13}}><i className="ti ti-loader" style={{marginInlineEnd:5}}/>{t.payment.analyzing}</div>}
       {verif&&(
-        <div style={{marginTop:12,padding:"13px 14px",borderRadius:10,background:verif.manual?AL:verif.verified?GL:RL,border:`1px solid ${verif.manual?"#E4C988":verif.verified?"#A9DFC0":"#F5B7B1"}`,display:"flex",gap:10,alignItems:"flex-start"}}>
-          <i className={`ti ti-${verif.manual?"clock":verif.verified?"circle-check":"circle-x"}`} style={{fontSize:20,color:verif.manual?AM:verif.verified?GR:RD,flexShrink:0,marginTop:1}}/>
+        <div style={{marginTop:12,padding:"13px 14px",borderRadius:10,background:verif.skipped?AL:verif.manual?AL:verif.verified?GL:RL,border:`1px solid ${verif.skipped?"#E4C988":verif.manual?"#E4C988":verif.verified?"#A9DFC0":"#F5B7B1"}`,display:"flex",gap:10,alignItems:"flex-start"}}>
+          <i className={`ti ti-${verif.skipped?"player-skip-forward":verif.manual?"clock":verif.verified?"circle-check":"circle-x"}`} style={{fontSize:20,color:verif.skipped?AM:verif.manual?AM:verif.verified?GR:RD,flexShrink:0,marginTop:1}}/>
           <div>
-            <div style={{fontWeight:600,color:verif.manual?AM:verif.verified?GR:RD,fontSize:13}}>{verif.manual?t.payment.manualPendingTitle:verif.verified?t.payment.verifiedTitle:t.payment.failedTitle}</div>
+            <div style={{fontWeight:600,color:verif.skipped?AM:verif.manual?AM:verif.verified?GR:RD,fontSize:13}}>{verif.skipped?t.payment.skippedTitle:verif.manual?t.payment.manualPendingTitle:verif.verified?t.payment.verifiedTitle:t.payment.failedTitle}</div>
             <div style={{fontSize:12,color:TX,marginTop:2}}>{verif.reason}</div>
             {verif.transactionRef&&<div style={{fontSize:11,color:MT,marginTop:2}}>{t.payment.ref}: {verif.transactionRef}</div>}
             {verif.amount&&<div style={{fontSize:11,color:MT}}>{t.payment.amountDetected}: {verif.amount} EGP</div>}
@@ -524,7 +540,7 @@ function ReviewStep({exam,selDate,selTime,info,verif,submitting,onBack,onSubmit,
     [t.review.patientName,info.name],[t.review.phone,info.phone],
     info.email&&[t.review.email,info.email],
     [t.review.ageGender,`${info.age} ${lang==="ar"?"سنة":"yrs"} / ${info.gender}`],
-    [t.review.payment,verif?.manual?t.payment.manualPendingTitle:t.review.paymentVerified],
+    [t.review.payment,verif?.skipped?t.payment.skippedTitle:verif?.manual?t.payment.manualPendingTitle:t.review.paymentVerified],
     verif?.transactionRef&&[t.review.transactionRef,verif.transactionRef],
   ].filter(Boolean);
   return(
@@ -606,6 +622,7 @@ function AdminView({onLogout,t,lang,clinicName}){
     instapayLink:ls.get("clinic_instapay_link")||"",
     gasUrl:ls.get("clinic_gas_url")||"",
     adminPin:ls.get("clinic_admin_pin")||"1234",
+    skipPaymentEnabled:false,
   });
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
@@ -617,6 +634,7 @@ function AdminView({onLogout,t,lang,clinicName}){
 
   useEffect(()=>{
     gasGet({action:"getSchedule"}).then(r=>{ if(r && r.schedule) setSchedule(r.schedule); });
+    gasGet({action:"getPublicSettings"}).then(r=>{ if(r && typeof r.skipPaymentEnabled!=="undefined") setSett(p=>({...p,skipPaymentEnabled:!!r.skipPaymentEnabled})); });
   },[]);
 
   async function saveSchedule(){
@@ -652,7 +670,7 @@ function AdminView({onLogout,t,lang,clinicName}){
     ls.set("clinic_instapay_link",sett.instapayLink);
     ls.set("clinic_gas_url",sett.gasUrl);
     ls.set("clinic_admin_pin",sett.adminPin);
-    const r=await gasPost({action:"saveSettings",currentPin:adminPin,clinicName:sett.clinicName,doctorEmail:sett.doctorEmail,secretaryEmail:sett.secretaryEmail,adminPin:sett.adminPin});
+    const r=await gasPost({action:"saveSettings",currentPin:adminPin,clinicName:sett.clinicName,doctorEmail:sett.doctorEmail,secretaryEmail:sett.secretaryEmail,adminPin:sett.adminPin,skipPaymentEnabled:sett.skipPaymentEnabled});
     setSaving(false);
     setMsg(r.success?t.admin.savedOk:(r.error||t.admin.saveFail));
   }
@@ -736,6 +754,13 @@ function AdminView({onLogout,t,lang,clinicName}){
                 <input type={ty} placeholder={ph} value={sett[k]||""} onChange={e=>setSett(p=>({...p,[k]:e.target.value}))} style={bs.inp}/>
               </div>
             ))}
+            <div style={{display:"flex",alignItems:"flex-start",gap:9,marginBottom:14,padding:"10px 13px",background:BG,borderRadius:8,border:`1px solid ${BD}`}}>
+              <input type="checkbox" checked={!!sett.skipPaymentEnabled} onChange={e=>setSett(p=>({...p,skipPaymentEnabled:e.target.checked}))} style={{marginTop:2}}/>
+              <div>
+                <div style={{fontWeight:500,fontSize:13,color:TX}}>{t.admin.skipToggleLabel}</div>
+                <div style={{fontSize:11,color:MT,marginTop:2}}>{t.admin.skipToggleSub}</div>
+              </div>
+            </div>
             {msg&&<div style={{padding:"8px 12px",borderRadius:7,marginBottom:12,fontSize:13,background:msg.includes("✓")?GL:RL,color:msg.includes("✓")?GR:RD}}>{msg}</div>}
             <button style={{...bs.btn,opacity:saving?0.6:1}} onClick={saveSettings} disabled={saving}><i className="ti ti-device-floppy" style={{marginInlineEnd:5}}/>{saving?t.admin.saving:t.admin.saveBtn}</button>
           </div>
@@ -904,14 +929,21 @@ function App(){
   const [vfying,setVF]=useState(false);
   const [submitting,setSub]=useState(false);
   const [confirmed,setConf]=useState(null);
-  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzrf-ldOWWGyozq5kV66n_zCRYNInZ4oJTuc-9DwPTE1kmxItluth2MZGOrtRrdDBrA0w/exec";
-  if(!ls.get("clinic_gas_url")) ls.set("clinic_gas_url", BACKEND_URL);
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyCu5UhDqo6oy9V5fDGQV7S0Is8Dds-c9xOZ7SQCiqGsrjV1dNBoAHiqVmkmUMbRLmCFA/exec";
+  ls.set("clinic_gas_url", BACKEND_URL);
   const [showSetup,setShowSetup]=useState(false);
+  const [skipPaymentEnabled,setSkipPaymentEnabled]=useState(false);
   const [schedule,setSchedule]=useState(()=>{
     const cached = ls.get("clinic_schedule");
     if(cached){ try{ return JSON.parse(cached); }catch(e){} }
     return SCH_DEFAULT;
   });
+
+  useEffect(()=>{
+    gasGet({action:"getPublicSettings"}).then(r=>{
+      if(r && typeof r.skipPaymentEnabled!=="undefined") setSkipPaymentEnabled(!!r.skipPaymentEnabled);
+    });
+  },[]);
 
   useEffect(()=>{
     gasGet({action:"getSchedule"}).then(r=>{
@@ -962,6 +994,10 @@ function App(){
 
   function onManualConfirm(){
     setVerif({verified:true, manual:true, reason:t.payment.manualPendingReason});
+  }
+
+  function onSkipPayment(){
+    setVerif({verified:true, skipped:true, reason:t.payment.skippedReason});
   }
 
   async function onSubmit(){
@@ -1029,7 +1065,7 @@ function App(){
         {step===1&&<ExamStep exam={examType} setExam={setExamType} onNext={()=>setStep(2)} t={t} lang={lang}/>}
         {step===2&&<DateStep selDate={selDate} setSelDate={d=>{setSelDate(d);setSelTime(null);}} selTime={selTime} setSelTime={setSelTime} onBack={()=>setStep(1)} onNext={()=>setStep(3)} t={t} lang={lang} schedule={schedule}/>}
         {step===3&&<InfoStep info={info} setInfo={setInfo} onBack={()=>setStep(2)} onNext={()=>setStep(4)} t={t} lang={lang}/>}
-        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onManualConfirm={onManualConfirm} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
+        {step===4&&<PaymentStep exam={exam} receipt={receipt} recPrev={recPrev} verif={verif} vfying={vfying} onFile={handleFile} onVerify={onVerify} onManualConfirm={onManualConfirm} onSkip={onSkipPayment} skipPaymentEnabled={skipPaymentEnabled} onBack={()=>setStep(3)} onNext={()=>setStep(5)} t={t} lang={lang}/>}
         {step===5&&<ReviewStep exam={exam} selDate={selDate} selTime={selTime} info={info} verif={verif} submitting={submitting} onBack={()=>setStep(4)} onSubmit={onSubmit} t={t} lang={lang}/>}
       </main>
     </div>
